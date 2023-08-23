@@ -1,0 +1,4 @@
+venv_rivt/
+__pycache__/
+models/
+*.ipynb

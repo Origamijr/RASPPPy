@@ -1,0 +1,57 @@
+{
+    "id": 1,
+    "class": "Patch",
+    "name": "Untitled",
+    "outputs": [],
+    "objects": [
+        {
+            "id": 2,
+            "class": "Number",
+            "outputs": [
+                [
+                    {
+                        "id": 4,
+                        "port": 0
+                    }
+                ]
+            ],
+            "state": {
+                "value": 1
+            }
+        },
+        {
+            "id": 3,
+            "class": "Number",
+            "outputs": [
+                [
+                    {
+                        "id": 4,
+                        "port": 1
+                    }
+                ]
+            ],
+            "state": {
+                "value": 2
+            }
+        },
+        {
+            "id": 4,
+            "class": "Add",
+            "outputs": [
+                [
+                    {
+                        "id": 5,
+                        "port": 0
+                    }
+                ]
+            ],
+            "state": {}
+        },
+        {
+            "id": 5,
+            "class": "Print",
+            "outputs": [],
+            "state": {}
+        }
+    ]
+}
