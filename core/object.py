@@ -4,6 +4,7 @@ from enum import Enum, auto
 from dataclasses import dataclass
 
 from core.config import config
+from core.audio_server import BUFSIZE
 
 class DataType(Enum):
     BANG = 0
@@ -44,11 +45,11 @@ class Object:
             self.wires: list[Object.ObjectIO.WireInfo] = []
             self.value = type[0].default() if isinstance(type, list) else type.default()
 
-    def __init__(self, state=...):
+    def __init__(self, properties=...):
         self.id = next(Object.id_iter)
         self.inputs: list[Object.ObjectIO] = []
         self.outputs: list[Object.ObjectIO]  = []
-        self.state = state if state != ... else dict()
+        self.properties = properties if properties != ... else dict()
         self.dsp = False
         self.audio_input = False
         self.audio_output = False
@@ -61,20 +62,21 @@ class Object:
                 'id': w.object.id,
                 'port': w.port
             } for w in io.wires] for io in self.outputs],
-            'state': self.state
+            'properties': self.properties
         }
     
     def __repr__(self):
         return repr(self.serialize())
     
-    def set_state(self, state):
-        self.state |= state
+    def set_properties(self, properties):
+        self.properties |= properties
 
     def add_input(self, type: DataType|list[DataType]):
         self.inputs.append(Object.ObjectIO(type))
         self._check_signal_port()
 
     def add_output(self, type: DataType|list[DataType]):
+        assert not (isinstance(type, list) and len(type) > 1 and DataType.SIGNAL in type), 'SIGNAL type output must be only'
         self.outputs.append(Object.ObjectIO(type))
         self._check_signal_port()
 
@@ -135,29 +137,70 @@ class Object:
 
     def process_signal(self):
         assert self.dsp
+        for output in self.outputs:
+            if output.type != DataType.SIGNAL: continue
+            for wire in output.wires:
+                wire.object.inputs[wire.port].value += output.value
+
+    def reset_dsp(self):
+        assert self.dsp
+        for input in self.inputs:
+            if input.type != DataType.SIGNAL or (isinstance(input.type, list) and DataType.SIGNAL not in input.type): continue
+            for wire in input.wires:
+                if wire.object.outputs[wire.port].type == DataType.SIGNAL:
+                    input.value = np.zeros(BUFSIZE)
+                    break
 
 
 class AudioIOObject(Object):
     """
     """
 
-    def __init__(self, state=...):
-        super().__init__(state)
+    def __init__(self, properties=...):
+        super().__init__(properties)
         self.audio_io_buffer: np.ndarray = np.zeros(config(['audio', 'chunk_size']))
 
     def process_signal(self):
         assert self.audio_input or self.audio_output, 'AudioIOObject not designated as audio IO'
         super().process_signal()
 
+class Blank(Object):
+    """
+    Simple object that propogates the input to the output
+    """
+    def __init__(self, properties=...):
+        super().__init__(properties)
+        self.add_input(DataType.ANYTHING)
+        self.add_output(DataType.ANYTHING)
+
+    def bang(self, port=0):
+        super().bang(port)
+        self.outputs[0].value = self.inputs[0].value
+        self.send()
+
+class Blank_DSP(Object):
+    """
+    Simple object that propogates the input to the output
+    """
+    def __init__(self, properties=...):
+        super().__init__(properties)
+        self.add_input(DataType.SIGNAL)
+        self.add_output(DataType.SIGNAL)
+
+    def process_signal(self):
+        super().process_signal()
+        self.outputs[0].value = self.inputs[0].value
+
+
 if __name__ == "__main__":
     o = Object()
-    o.set_state({'a': 1})
+    o.set_properties({'a': 1})
     print(o)
-    o.set_state({'a': 2})
+    o.set_properties({'a': 2})
     print(o)
-    o.set_state({'b': 3})
+    o.set_properties({'b': 3})
     print(o)
-    o.set_state({'b': 4, 'c':5})
+    o.set_properties({'b': 4, 'c':5})
     print(o)
-    o.set_state({'a': 6, 'b': 7, 'c':8})
+    o.set_properties({'a': 6, 'b': 7, 'c':8})
     print(1 in [[1], 2])

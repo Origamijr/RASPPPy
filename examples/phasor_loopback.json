@@ -1,0 +1,88 @@
+{
+    "id": 1,
+    "class": "Patch",
+    "name": "Untitled",
+    "outputs": [],
+    "objects": [
+        {
+            "id": 2,
+            "class": "ADC_DSP",
+            "outputs": [
+                [
+                    {
+                        "id": 6,
+                        "port": 0
+                    }
+                ],
+                []
+            ],
+            "properties": {
+                "channels": [
+                    0,
+                    1
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "class": "DAC_DSP",
+            "outputs": [],
+            "properties": {
+                "channels": [
+                    0,
+                    1
+                ]
+            }
+        },
+        {
+            "id": 4,
+            "class": "Phasor_DSP",
+            "outputs": [
+                [
+                    {
+                        "id": 5,
+                        "port": 0
+                    }
+                ]
+            ],
+            "properties": {
+                "freq": 660
+            }
+        },
+        {
+            "id": 5,
+            "class": "Multiply_DSP",
+            "outputs": [
+                [
+                    {
+                        "id": 6,
+                        "port": 0
+                    }
+                ]
+            ],
+            "properties": {
+                "value": 0.01
+            }
+        },
+        {
+            "id": 6,
+            "class": "Multiply_DSP",
+            "outputs": [
+                [
+                    {
+                        "id": 3,
+                        "port": 0
+                    },
+                    {
+                        "id": 3,
+                        "port": 1
+                    }
+                ]
+            ],
+            "properties": {
+                "value": 0.9
+            }
+        }
+    ],
+    "properties": {}
+}

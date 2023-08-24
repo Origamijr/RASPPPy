@@ -5,8 +5,8 @@ class Print(Object):
     """
     """
 
-    def __init__(self, state=...):
-        super().__init__(state)
+    def __init__(self, properties=...):
+        super().__init__(properties)
         self.add_input(DataType.ANYTHING)
 
     def bang(self, port=0):

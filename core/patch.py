@@ -4,10 +4,11 @@ import pathlib
 from core.object import Object
 
 class Patch(Object):
-    def __init__(self):
+    def __init__(self, filename=None):
         super().__init__()
         self.name = 'Untitled'
         self.objects: list[Object] = []
+        if filename is not None: self.load(filename)
 
     def add_object(self, obj: Object):
         self.objects.append(obj)
@@ -19,16 +20,17 @@ class Patch(Object):
         self.name = data['name']
 
         self.objects = []
-        for obj in data:
+        for obj in data['objects']:
             module = __import__('objects')
             class_ = getattr(module, obj['class'])
             self.objects.append(class_())
+            self.objects[-1].set_properties(obj['properties'])
 
-        inds = {obj.id: i for i, obj in enumerate(self.objects)}
-        for obj, info in zip(self.objects, data):
+        inds = {obj['id']: i for i, obj in enumerate(data['objects'])}
+        for obj, info in zip(self.objects, data['objects']):
             for port, wires in enumerate(info['outputs']):
                 for wire in wires:
-                    obj.wire(port, self.objects[inds[wire.id]], wire.port)
+                    obj.wire(port, self.objects[inds[wire['id']]], wire['port'])
 
     def serialize(self):
         return {
@@ -39,7 +41,8 @@ class Patch(Object):
                 'id': w.object.id,
                 'port': w.port
             } for w in io.wires] for io in self.outputs],
-            'objects': [obj.serialize() for obj in self.objects]
+            'objects': [obj.serialize() for obj in self.objects],
+            'properties': self.properties
         }
 
     def save(self, filename):
@@ -61,8 +64,11 @@ if __name__ == "__main__":
     p.add_object(n2)
     p.add_object(a)
     p.add_object(pr)
+    p.objects[1].bang()
+    p.objects[0].bang()
     p.save('examples/add.json')
     p.load('examples/add.json')
-    p[1].bang()
-    p[0].bang()
+    print(p)
+    p.objects[1].bang()
+    p.objects[0].bang()
     

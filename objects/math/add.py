@@ -4,13 +4,13 @@ class Add(Object):
     """
     """
 
-    def __init__(self, state=...):
-        super().__init__(state)
+    def __init__(self, properties=...):
+        super().__init__(properties)
         self.add_input(DataType.NUMBER)
         self.add_input(DataType.NUMBER)
         self.add_output(DataType.NUMBER)
-        self.state = {'value': 0} | self.state
-        self.inputs[1].value = self.state['value']
+        self.properties = {'value': 0} | self.properties
+        self.inputs[1].value = self.properties['value']
 
     def bang(self, port=0):
         super().bang(port)

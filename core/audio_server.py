@@ -41,11 +41,11 @@ class AudioServer:
             AudioServer.frame_duration.add(AudioServer.last_frame_duration)
             AudioServer.frame_duration_stability.add((AudioServer.frame_duration.value - AudioServer.last_frame_duration) ** 2)
         AudioServer.last_frame_time = time.currentTime
-        print(indata[:,0].shape, outdata.shape, frames, AudioServer.frame_duration.value, AudioServer.frame_duration_stability.value, status)
+        #print(indata[:,0].shape, outdata.shape, frames, AudioServer.frame_duration.value, AudioServer.frame_duration_stability.value, status)
         out = np.zeros(outdata.shape)
         for fn in AudioServer.callbacks:
-            out += fn(indata)
-        outdata[:] = indata
+            out += fn(indata)[:,:out.shape[1]]
+        outdata[:] = out
 
     @staticmethod
     def run_server():

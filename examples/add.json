@@ -15,7 +15,7 @@
                     }
                 ]
             ],
-            "state": {
+            "properties": {
                 "value": 1
             }
         },
@@ -30,7 +30,7 @@
                     }
                 ]
             ],
-            "state": {
+            "properties": {
                 "value": 2
             }
         },
@@ -45,13 +45,16 @@
                     }
                 ]
             ],
-            "state": {}
+            "properties": {
+                "value": 0
+            }
         },
         {
             "id": 5,
             "class": "Print",
             "outputs": [],
-            "state": {}
+            "properties": {}
         }
-    ]
+    ],
+    "properties": {}
 }
