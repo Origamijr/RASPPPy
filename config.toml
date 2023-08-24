@@ -1,3 +1,4 @@
 [audio]
 chunk_size = 1024
 sample_rate = 44100
+latency = 'low'

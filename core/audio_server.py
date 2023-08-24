@@ -1,38 +1,83 @@
-import pyaudio
-import json
+import time
+import threading
+import numpy as np
+import sounddevice as sd
 
+from core.utils import MovingAverage
 from core.config import config
 CONFIG = config(['audio'])
+SAMPLE_RATE = CONFIG['sample_rate']
+BUFSIZE = CONFIG['chunk_size']
 
 class AudioServer:
-    def __init__(self):
-        self.sr = CONFIG['sample_rate']
-        self.bufsize = CONFIG['chunk_size']
-        self.audio = pyaudio.PyAudio()
+    sr = SAMPLE_RATE
+    bufsize = BUFSIZE
+    callbacks = []
+    active = False
 
-        self.get_devices()
+    last_frame_time = None
+    last_frame_duration = None
+    frame_duration = MovingAverage(alpha=0.1)
+    frame_duration_stability = MovingAverage(alpha=0.1)
+
+    @staticmethod
+    def get_default_devices():
+        host_apis = [a for a in sd.query_hostapis()]
+        input_devices = [d for d in sd.query_devices() if d['max_input_channels']]
+        output_devices = [d for d in sd.query_devices() if d['max_output_channels']]
+        default_host_api = [i for i, a in enumerate(host_apis) if a['name'] == CONFIG['host_api']][0] \
+                            if 'host_api' in CONFIG else 0
+        default_input_device = 0
+        default_output_device = 0
+        #TODO figure out how to tie to config file. sort of low priority
+        return tuple(sd.default.device)
+
+    input_device, output_device = get_default_devices()
     
-    def get_devices(self):
-        self.input_devices = []
-        self.output_devices = []
-        self.host_apis = [self.audio.get_host_api_info_by_index(i)['name'] for i in range(self.audio.get_host_api_count())]
+    @staticmethod
+    def callback(indata, outdata, frames, time, status: sd.CallbackFlags):
+        if AudioServer.last_frame_time:
+            AudioServer.last_frame_duration = time.currentTime - AudioServer.last_frame_time
+            AudioServer.frame_duration.add(AudioServer.last_frame_duration)
+            AudioServer.frame_duration_stability.add((AudioServer.frame_duration.value - AudioServer.last_frame_duration) ** 2)
+        AudioServer.last_frame_time = time.currentTime
+        print(indata[:,0].shape, outdata.shape, frames, AudioServer.frame_duration.value, AudioServer.frame_duration_stability.value, status)
+        out = np.zeros(outdata.shape)
+        for fn in AudioServer.callbacks:
+            out += fn(indata)
+        outdata[:] = indata
 
-        devices = [self.audio.get_device_info_by_index(i)['name'] for i in range(self.audio.get_device_count())]
-        for device in devices:
-            try:
-                deviceName = device['name'].encode('shift-jis').decode('utf-8')
-            except (UnicodeDecodeError, UnicodeEncodeError):
-                deviceName = device['name']
+    @staticmethod
+    def run_server():
+        stream = sd.Stream(callback=AudioServer.callback, 
+                           dtype=np.float32,
+                           samplerate=AudioServer.sr,
+                           blocksize=AudioServer.bufsize,
+                           device=(AudioServer.input_device, AudioServer.output_device),
+                           channels=sd.default.channels,
+                           latency=CONFIG['latency'] if 'latency' in CONFIG else sd.default.latency)
+        with stream:
+            while AudioServer.active:
+                time.sleep(0.1)
+    
+    @staticmethod
+    def open():
+        AudioServer.active = True
+        thread = threading.Thread(name='audio_server', target=AudioServer.run_server)
+        thread.start()
 
-            if device['maxInputChannels'] > 0:
-                self.input_devices.append({"index": device['index'], "name": deviceName, "hostApi": device['hostApi']})
-            if device['maxOutputChannels'] > 0:
-                self.output_devices.append({"index": device['index'], "name": deviceName, "hostApi": device['hostApi']})
-        
-        assert len(self.input_devices) > 0 and len(self.output_devices) > 0
-        self.default_in_device = self.input_devices[0]
-        self.default_out_device = self.output_devices[0]
+    @staticmethod
+    def close():
+        AudioServer.active = False
+        time.sleep(0.1)
+        AudioServer.callbacks = []
+
+    @staticmethod
+    def add_callback(fn):
+        AudioServer.callbacks.append(fn)
 
 
 if __name__ == "__main__":
-    audio = AudioServer()
+    AudioServer.open()
+    time.sleep(5)
+    AudioServer.close()

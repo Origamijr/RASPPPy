@@ -3,11 +3,13 @@ import numpy as np
 from enum import Enum, auto
 from dataclasses import dataclass
 
+from core.config import config
+
 class DataType(Enum):
     BANG = 0
     NUMBER = auto()
     STRING = auto()
-    AUDIO = auto()
+    SIGNAL = auto()
     ARRAY = auto()
     LIST = auto()
     DICTIONARY = auto()
@@ -17,7 +19,7 @@ class DataType(Enum):
         match cls:
             case DataType.BANG: return None
             case DataType.NUMBER: return 0
-            case DataType.AUDIO: return None
+            case DataType.SIGNAL: return None
             case DataType.ARRAY: return np.array([])
             case DataType.STRING: return ''
             case DataType.LIST: return []
@@ -37,17 +39,17 @@ class Object:
             object: 'Object'
             port: int
         def __init__(self, type: DataType|list[DataType]):
-            assert isinstance(type, DataType) or (DataType.BANG not in type and DataType.AUDIO not in type)
+            assert isinstance(type, DataType) or (DataType.BANG not in type and DataType.ANYTHING not in type), 'Invalid IO port type'
             self.type: DataType|list[DataType] = type
             self.wires: list[Object.ObjectIO.WireInfo] = []
-            self.value = type.default()
+            self.value = type[0].default() if isinstance(type, list) else type.default()
 
     def __init__(self, state=...):
         self.id = next(Object.id_iter)
         self.inputs: list[Object.ObjectIO] = []
         self.outputs: list[Object.ObjectIO]  = []
         self.state = state if state != ... else dict()
-        self.audio = False
+        self.dsp = False
         self.audio_input = False
         self.audio_output = False
 
@@ -70,11 +72,11 @@ class Object:
 
     def add_input(self, type: DataType|list[DataType]):
         self.inputs.append(Object.ObjectIO(type))
-        self._check_audio_port()
+        self._check_signal_port()
 
     def add_output(self, type: DataType|list[DataType]):
         self.outputs.append(Object.ObjectIO(type))
-        self._check_audio_port()
+        self._check_signal_port()
 
     def remove_input(self):
         assert len(self.inputs > 0)
@@ -82,7 +84,7 @@ class Object:
         for wire in wires:
             wire.object.disconnect(wire.port, wire.object.id)
         self.inputs.pop()
-        self._check_audio_port()
+        self._check_signal_port()
 
     def remove_output(self):
         assert len(self.outputs > 0)
@@ -90,10 +92,12 @@ class Object:
         for wire in wires:
             self.disconnect(len(self.outputs) - 1, wire.object.id)
         self.outputs.pop()
-        self._check_audio_port()
+        self._check_signal_port()
 
-    def _check_audio_port(self):
-        self.audio = self.audio_input or self.audio_output or DataType.AUDIO in self.inputs or DataType.AUDIO in self.outputs
+    def _check_signal_port(self):
+        self.dsp = self.audio_input or self.audio_output \
+                   or any([(DataType.SIGNAL in input.type if isinstance(input.type, list) else input.type == DataType.SIGNAL) for input in self.inputs]) \
+                   or any([(DataType.SIGNAL in output.type if isinstance(output.type, list) else output.type == DataType.SIGNAL) for output in self.outputs])
 
     def wire(self, output, other: 'Object', other_input):
         if output >= len(self.outputs) or other_input >= len(other.inputs):
@@ -103,6 +107,7 @@ class Object:
         type2 = other.inputs[other_input].type
         type1 = type1 if isinstance(type1, list) else [type1]
         type2 = type2 if isinstance(type2, list) else [type2]
+        # Bangs should be compatible with all types, otherwise outputs must be subset of inputs
         if not (type1[0] == DataType.BANG or type2[0] == DataType.BANG) and (type2[0] != DataType.ANYTHING and not set(type1).issubset(set(type2))):
             raise WireException(self, output, 'incompatible data types')
         
@@ -119,7 +124,7 @@ class Object:
 
     def send(self):
         for output in reversed(self.outputs):
-            if output.type == DataType.AUDIO: continue
+            if output.type == DataType.SIGNAL: continue
             for wire in output.wires:
                 if output.type != DataType.BANG and wire.object.inputs[wire.port].type != DataType.BANG:
                     wire.object.set(wire.port, output.value)
@@ -128,8 +133,21 @@ class Object:
     def bang(self, port=0):
         assert 0 <= port < len(self.inputs)
 
-    def process_audio(self):
-        assert self.audio
+    def process_signal(self):
+        assert self.dsp
+
+
+class AudioIOObject(Object):
+    """
+    """
+
+    def __init__(self, state=...):
+        super().__init__(state)
+        self.audio_io_buffer: np.ndarray = np.zeros(config(['audio', 'chunk_size']))
+
+    def process_signal(self):
+        assert self.audio_input or self.audio_output, 'AudioIOObject not designated as audio IO'
+        super().process_signal()
 
 if __name__ == "__main__":
     o = Object()
