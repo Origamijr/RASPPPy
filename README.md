@@ -1,4 +1,4 @@
-# RASPPPy (Real-time Audio and Signal Processing Patcher for Python)
+# RASPPPy (Real-time Audio Signal Processing Patcher for Python)
 
 A toolkit for creating and running audio (and potentially other multimedia) real-time applications created in Python.
 
