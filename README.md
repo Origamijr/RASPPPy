@@ -1,6 +1,6 @@
 # RASPPPy (Real-time Audio Signal Processing Patcher for Python)
 
-A toolkit for creating and running audio (and potentially other multimedia) real-time applications created in Python.
+A visual programming language for creating and running audio (and potentially other multimedia) real-time applications created in Python.
 
 With the rapid developments in audio processing (ASR, TTS, SV, VC, etc), we now have access to many more powerful components that can be used in larger application. However, creating applications using these new models can take long times to prototype for different applications. In the realm of audio, [Pure Data](https://puredata.info/) allows for the rapid prototyping of various audio applications, but interfacing Pd with these newer audio processing tools is quite difficult, since most newer tools are developed and implemented with python and pytorch.
 
