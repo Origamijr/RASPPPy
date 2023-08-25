@@ -31,4 +31,3 @@ class ADC_DSP(AudioIOObject):
                 self.outputs[i].value = np.zeros(self.audio_io_buffer.shape[0])
             else:
                 self.outputs[i].value = self.audio_io_buffer[:,channel].copy()
-        super().process_signal()

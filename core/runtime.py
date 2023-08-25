@@ -64,7 +64,7 @@ class Runtime():
 
         # Run Computation
         for object in Runtime.dsp_order:
-            object.process_signal()
+            object._process_signal()
             #if len(object.outputs) > 0: print(object.__class__.__name__, object.outputs[0].value)
 
         # Collect Outputs

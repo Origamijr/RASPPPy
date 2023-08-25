@@ -20,8 +20,8 @@ class Patch(Object):
         self.name = data['name']
 
         self.objects = []
+        module = __import__('objects')
         for obj in data['objects']:
-            module = __import__('objects')
             class_ = getattr(module, obj['class'])
             self.objects.append(class_())
             self.objects[-1].set_properties(obj['properties'])

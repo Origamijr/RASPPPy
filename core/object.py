@@ -136,11 +136,18 @@ class Object:
         assert 0 <= port < len(self.inputs)
 
     def process_signal(self):
+        raise NotImplementedError(f'DSP object {self.__class__.__name__} process_signal not implemented')
+
+    def _process_signal(self):
         assert self.dsp
+        self.process_signal()
         for output in self.outputs:
             if output.type != DataType.SIGNAL: continue
             for wire in output.wires:
-                wire.object.inputs[wire.port].value += output.value
+                if wire.object.inputs[wire.port].value is not None:
+                    wire.object.inputs[wire.port].value += output.value
+                else:
+                    wire.object.inputs[wire.port].value = output.value
 
     def reset_dsp(self):
         assert self.dsp
@@ -148,7 +155,7 @@ class Object:
             if input.type != DataType.SIGNAL or (isinstance(input.type, list) and DataType.SIGNAL not in input.type): continue
             for wire in input.wires:
                 if wire.object.outputs[wire.port].type == DataType.SIGNAL:
-                    input.value = np.zeros(BUFSIZE)
+                    input.value = None
                     break
 
 

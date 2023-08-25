@@ -29,4 +29,3 @@ class DAC_DSP(AudioIOObject):
         self.audio_io_buffer = np.zeros((self.audio_io_buffer.shape[0], max(self.channels)+1))
         for i, channel in enumerate(self.channels):
             self.audio_io_buffer[:,channel] = self.inputs[i].value
-        super().process_signal()

@@ -33,4 +33,3 @@ class Multiply_DSP(Object):
 
     def process_signal(self):
         self.outputs[0].value = np.multiply(self.inputs[0].value, self.inputs[1].value)
-        super().process_signal()

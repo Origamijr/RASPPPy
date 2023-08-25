@@ -2,8 +2,10 @@ import numpy as np
 from numbers import Number
 
 from core.object import Object, DataType
-from core.audio_server import SAMPLE_RATE, BUFSIZE
 from core.runtime import Runtime
+from core.config import config
+CONFIG = config(['audio'])
+
 
 class Phasor_DSP(Object):
     """
@@ -17,25 +19,32 @@ class Phasor_DSP(Object):
         self.set_properties(self.properties)
         self.last_value = 0
 
-    def convert_input_to_signal(self):
+    def _convert_input_to_signal(self):
+        # Convert port 0 input to a constant signal if it's a number
         if isinstance(self.inputs[0].value, Number):
-            self.inputs[0].value = np.full(BUFSIZE, self.inputs[0].value)
+            self.inputs[0].value = np.full(CONFIG['chunk_size'], self.inputs[0].value)
 
     def set_properties(self, properties):
         if 'freq' in properties:
             self.inputs[0].value = self.properties['freq']
-            self.convert_input_to_signal()
+            self._convert_input_to_signal()
         super().set_properties(properties)
 
     def bang(self, port=0):
         if port == 0:
-            self.convert_input_to_signal()
-        super().bang(port)
+            self._convert_input_to_signal()
 
     def process_signal(self):
-        deltas = self.inputs[0].value / SAMPLE_RATE
+        # Convert frequency to rate
+        deltas = self.inputs[0].value / CONFIG['sample_rate']
+
+        # The rate is just the first derivative, so a cumulative sum would give a ramp at constant rate
+        # add the last value to set initial value
         deltas[0] += self.last_value
+
+        # Cumulative sum
         self.outputs[0].value = np.mod(np.cumsum(deltas), 1)
+        
+        # Store last value
         self.last_value = self.outputs[0].value[-1]
-        super().process_signal()
 
