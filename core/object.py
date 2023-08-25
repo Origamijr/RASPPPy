@@ -49,7 +49,9 @@ class Object:
         self.id = next(Object.id_iter)
         self.inputs: list[Object.ObjectIO] = []
         self.outputs: list[Object.ObjectIO]  = []
+        
         self.properties = properties if properties != ... else dict()
+
         self.dsp = False
         self.audio_input = False
         self.audio_output = False

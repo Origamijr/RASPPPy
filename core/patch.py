@@ -2,6 +2,9 @@ import json
 import pathlib
 
 from core.object import Object
+from core.utils import import_dir
+from core.config import config
+CONFIG = config(['files'])
 
 class Patch(Object):
     def __init__(self, filename=None):
@@ -13,6 +16,10 @@ class Patch(Object):
     def add_object(self, obj: Object):
         self.objects.append(obj)
 
+    def get_object(self, id):
+        query = [o for o in self.objects if o.id == id]
+        return None if len(query) == 0 else query[0]
+
     def load(self, filename):
         with open(filename, 'r') as f:
             data = json.load(f)
@@ -20,7 +27,7 @@ class Patch(Object):
         self.name = data['name']
 
         self.objects = []
-        module = __import__('objects')
+        module = import_dir(CONFIG['base_library'])
         for obj in data['objects']:
             class_ = getattr(module, obj['class'])
             self.objects.append(class_())

@@ -19,7 +19,14 @@ Installation is still very primitive, and I'll get that working in the future.
 
 ## Running
 
-IN PROGRESS
+```
+python main.py
+```
+the `config.toml` should be in the same directory, but can otherwise be specified with the --config flag
+
+## Building
+
+Admitedly a mess, will write up later. Not completely standalone yet, need to figure out how to build electron along with eel using pyinstaller (https://github.com/python-eel/Eel/issues/57#issuecomment-426069269), but that's low priority
 
 ## Features
 
@@ -27,10 +34,11 @@ IN PROGRESS
 - saving and loading patches
 - some basic math and dsp
 - audio input/output
+- Basic GUI to play patches
 
 ### Planned for near future
 - Built in models for VAD, ASR, TTS, and VC (also maybe Llama as an extension)
-- GUI (looking into Flask for a web interface)
+- Actual GUI editor
 - Replicating most of the Pd library of basic blocks
 - Refining installation/execution process
 
@@ -38,3 +46,4 @@ IN PROGRESS
 - Faster dsp backend (may or may not be possible)
 - Pytorch library of objects for possibly training within the interface
 - Wider Multimedia capabilities (e.g. Video using OpenCV)
+- Building into a standalone application

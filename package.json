@@ -1,0 +1,25 @@
+{
+  "name": "raspppy",
+  "version": "0.1.0",
+  "description": "A toolkit for creating and running audio (and potentially other multimedia) real-time applications created in Python.",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Origamijr/RASPPPy.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Origamijr/RASPPPy/issues"
+  },
+  "homepage": "https://github.com/Origamijr/RASPPPy#readme",
+  "devDependencies": {
+    "electron": "^26.1.0"
+  }
+}

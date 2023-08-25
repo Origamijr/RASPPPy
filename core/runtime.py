@@ -2,23 +2,29 @@ import numpy as np
 
 from core.patch import Patch
 from core.object import Blank, Blank_DSP, DataType, AudioIOObject
-from core.audio_server import AudioServer, BUFSIZE
+from core.audio_server import AudioServer
+from core.logger import log
+from core.config import config
+CONFIG = config(['audio'])
 
 class Runtime():
     patches: Patch = []
     arrays = dict()
     dsp_order = []
+    dsp = False
 
     @staticmethod
     def new_patch():
         Runtime.patches.append(Patch())
+        return Runtime.patches[-1]
 
     @staticmethod
-    def open_patch(filename):
+    def open_patch(filename) -> Patch:
         Runtime.patches.append(Patch(filename))
+        return Runtime.patches[-1]
 
     @staticmethod
-    def compute_dsp_graph():
+    def compute_dsp_graph() -> Patch:
         Runtime.dsp_order = []
         objects = [object for patch in Runtime.patches for object in patch.objects if object.dsp]
         # TODO also add the eventual blank objects created for inlets/outlets/send/rec~
@@ -68,7 +74,7 @@ class Runtime():
             #if len(object.outputs) > 0: print(object.__class__.__name__, object.outputs[0].value)
 
         # Collect Outputs
-        output = np.zeros((BUFSIZE,1))
+        output = np.zeros((CONFIG['chunk_size'],1))
         for object in Runtime.dsp_order:
             if isinstance(object, AudioIOObject) and object.audio_output:
                 if output.size < object.audio_io_buffer.size:
@@ -84,12 +90,16 @@ class Runtime():
     @staticmethod
     def start_dsp():
         if not Runtime.compute_dsp_graph(): return
+        Runtime.dsp = True
         AudioServer.open()
         AudioServer.add_callback(Runtime.compute_dsp)
+        log('DSP Enabled')
 
     @staticmethod
     def stop_dsp():
+        Runtime.dsp = False
         AudioServer.close()
+        log('DSP Disabled')
 
 if __name__ == "__main__":
     from objects import *
