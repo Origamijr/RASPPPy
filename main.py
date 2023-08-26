@@ -7,12 +7,13 @@ from core.runtime import Runtime
 eel.init('client', allowed_extensions=['.js', '.html'])
 
 @eel.expose
-def pick_file(filename):
+def open_patch(filename):
+    print(eel.js_random()(), filename)
     if os.path.exists(filename):
         p = Runtime.open_patch(filename)
         return p.serialize()
     else:
-        return np.array([0,1]).tolist()
+        return None
     
 @eel.expose
 def toggle_dsp(value):

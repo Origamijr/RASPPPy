@@ -4,7 +4,7 @@
 <head>
     <link rel="stylesheet" href="main.css">
 
-    <title>Hello, World!</title>
+    <title>RASPPPy</title>
 
     <!-- Include eel.js - note this file doesn't exist in the 'web' directory -->
     <script type="text/javascript" src="/eel.js"></script>
@@ -16,18 +16,15 @@
     <input type="checkbox" id="dsp_toggle">
     <label>DSP</label><br>
 
-    <form onsubmit="pick_file(); return false;">
-        <input id='input-box' placeholder='Type file here' value='examples/phasor_loopback.json' />
-        <button type="submit">Open File</button>
-    </form>
-
-    <div id='file-name'>---</div>
+    <div id='file_content'>---</div>
 
     <div class="main_canvas_container">
         <canvas id="main_canvas" class="main_canvas"></canvas>
     </div>
 
     <script type="text/javascript" src="/scripts/runtime.js"></script>
+    <script type="text/javascript" src="/scripts/canvas_editor.js"></script>
+    <input type="file" style="display:none" id="file_dialogue"/>
 </body>
 
 </html>

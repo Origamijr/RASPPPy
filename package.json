@@ -2,7 +2,7 @@
   "name": "raspppy",
   "version": "0.1.0",
   "description": "A toolkit for creating and running audio (and potentially other multimedia) real-time applications created in Python.",
-  "main": "index.js",
+  "main": "main.js",
   "directories": {
     "example": "examples"
   },
