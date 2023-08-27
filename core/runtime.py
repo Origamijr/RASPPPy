@@ -22,6 +22,10 @@ class Runtime():
     def open_patch(filename) -> Patch:
         Runtime.patches.append(Patch(filename))
         return Runtime.patches[-1]
+    
+    @staticmethod
+    def save_patch(filename):
+        Runtime.patches[0].save(filename) # TODO hard coded
 
     @staticmethod
     def compute_dsp_graph() -> Patch:

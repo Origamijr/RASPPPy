@@ -11,20 +11,23 @@
 </head>
 
 <body>
-    <h1>RASPPPy</h1>
+    <div class="grid_container">
+        <div class="header_bar">
+            <input type="checkbox" id="dsp_toggle">
+            <label>DSP</label><br>
+        </div>
 
-    <input type="checkbox" id="dsp_toggle">
-    <label>DSP</label><br>
+        <div class="main_canvas_container">
+            <canvas id="main_canvas" class="main_canvas"></canvas>
+        </div>
 
-    <div id='file_content'>---</div>
+        <div id="properties_panel" class="properties_panel">---</div>
 
-    <div class="main_canvas_container">
-        <canvas id="main_canvas" class="main_canvas"></canvas>
     </div>
-
     <script type="text/javascript" src="/scripts/runtime.js"></script>
+    <script type="text/javascript" src="/scripts/canvas_objects.js"></script>
     <script type="text/javascript" src="/scripts/canvas_editor.js"></script>
-    <input type="file" style="display:none" id="file_dialogue"/>
+    <input type="file" style="display:none" id="file_dialogue" />
 </body>
 
 </html>

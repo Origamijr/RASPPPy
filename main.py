@@ -8,12 +8,15 @@ eel.init('client', allowed_extensions=['.js', '.html'])
 
 @eel.expose
 def open_patch(filename):
-    print(eel.js_random()(), filename)
     if os.path.exists(filename):
         p = Runtime.open_patch(filename)
         return p.serialize()
     else:
         return None
+    
+@eel.expose
+def save_patch(filename):
+    Runtime.save_patch(filename)
     
 @eel.expose
 def toggle_dsp(value):

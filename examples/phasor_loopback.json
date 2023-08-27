@@ -7,6 +7,11 @@
         {
             "id": 2,
             "class": "ADC_DSP",
+            "name": "adc~",
+            "position": [
+                0,
+                0
+            ],
             "outputs": [
                 [
                     {
@@ -26,6 +31,11 @@
         {
             "id": 3,
             "class": "DAC_DSP",
+            "name": "dac~",
+            "position": [
+                0,
+                0
+            ],
             "outputs": [],
             "properties": {
                 "channels": [
@@ -37,6 +47,11 @@
         {
             "id": 4,
             "class": "Phasor_DSP",
+            "name": "phasor~",
+            "position": [
+                0,
+                0
+            ],
             "outputs": [
                 [
                     {
@@ -52,6 +67,11 @@
         {
             "id": 5,
             "class": "Multiply_DSP",
+            "name": "multiply~",
+            "position": [
+                0,
+                0
+            ],
             "outputs": [
                 [
                     {
@@ -67,6 +87,11 @@
         {
             "id": 6,
             "class": "Multiply_DSP",
+            "name": "multiply~",
+            "position": [
+                0,
+                0
+            ],
             "outputs": [
                 [
                     {

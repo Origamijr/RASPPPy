@@ -23,7 +23,7 @@ function createWindow() {
       label: 'Menu',
       submenu: [
         {
-          label: 'Open File',
+          label: 'Open Patch',
           accelerator: 'CmdOrCtrl+O',
           click() {
             dialog.showOpenDialog({
@@ -38,6 +38,13 @@ function createWindow() {
               .catch(function (err) {
                 console.error(err)
               })
+          }
+        },
+        {
+          label: 'Save Patch',
+          accelerator: 'CmdOrCtrl+S',
+          click() {
+            mainWindow.webContents.send('SAVE_PATCH', {})
           }
         },
         {

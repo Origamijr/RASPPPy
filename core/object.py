@@ -49,6 +49,7 @@ class Object:
         self.id = next(Object.id_iter)
         self.inputs: list[Object.ObjectIO] = []
         self.outputs: list[Object.ObjectIO]  = []
+        self.position: tuple[float,float] = (0,0)
         
         self.properties = properties if properties != ... else dict()
 
@@ -58,8 +59,12 @@ class Object:
 
     def serialize(self):
         return {
+            # TODO more entries specifically for how the object will load in gui
+            # e.g. display name, position, etc
             'id': self.id,
             'class': self.__class__.__name__,
+            'name': self.__class__.__name__.lower().replace('_dsp', '~'),
+            'position': list(self.position),
             'outputs': [[{
                 'id': w.object.id,
                 'port': w.port
@@ -72,6 +77,9 @@ class Object:
     
     def set_properties(self, properties):
         self.properties |= properties
+
+    def set_position(self, x, y):
+        self.position = (x, y)
 
     def add_input(self, type: DataType|list[DataType]):
         self.inputs.append(Object.ObjectIO(type))

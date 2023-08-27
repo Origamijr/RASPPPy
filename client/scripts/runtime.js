@@ -4,11 +4,18 @@ function pick_file() {
     return document.getElementById('file_dialogue').value
 }
 
+let patches = []
 window.electronAPI.openPatch(async (event, value) => {
     console.log('got FILE_OPEN', event, value)
     let patch = await eel.open_patch(value[0])()
+    patches.push([patch, value[0]])
     console.log(patch)
-    document.getElementById('file_content').innerHTML = patch.name
+    document.getElementById('properties_panel').innerHTML = patch.name
+})
+
+window.electronAPI.savePatch(async (event, value) => {
+    console.log('got FILE_SAVE', event, value)
+    await eel.save_patch(patches[0][1])() // TODO save is hard coded
 })
 
 let checkbox = document.getElementById("dsp_toggle");
