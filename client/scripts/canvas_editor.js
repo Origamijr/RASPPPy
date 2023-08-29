@@ -1,5 +1,6 @@
 let canvas = document.getElementById("main_canvas")
 let context = canvas.getContext("2d")
+let curr_patch = null
 fitToContainer(canvas)
 
 function fitToContainer(canvas){
@@ -20,16 +21,13 @@ canvas.addEventListener('mousedown', function (event) {
     let mouseY = parseInt(event.offsetY)
 
     curr_obj = null
-    Object.keys(objects).some(id => {
-        obj = objects[id]
-        const inside = obj.x <= mouseX && mouseX <= obj.x+obj.width 
-                        && obj.y+3 <= mouseY && mouseY <= obj.y+obj.height-3
-        if (inside) {
-            curr_obj = obj
-            curr_drag_offset = [obj.x - mouseX, obj.y - mouseY]
+    let collision = curr_patch.mouse_collision(mouseX, mouseY)
+    if (collision[0] != 0) {
+        if (collision[0] == 1) {
+            curr_obj = collision[2]
+            curr_drag_offset = [curr_obj.x - mouseX, curr_obj.y - mouseY]
         }
-        return inside
-    })
+    }
 });
 
 canvas.addEventListener('mouseup', function (event) {
@@ -70,27 +68,15 @@ canvas.addEventListener('dblclick', function (event) {
     //console.log(event);
 });
 
-let objects = {}
-
-function add_object(obj) {
-    objects[obj.id] = obj
-}
-
-add_object(new RASPPPyObject())
-
 function render(ctx) {
     //fitToContainer(canvas); // This should be able to be moved outside, but idk
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    Object.keys(objects).forEach(id => {
-        objects[id].render(ctx)
-    });
+    if (curr_patch) curr_patch.render(ctx)
 }
 
 // main update function
-function update(dt) {
-    Object.keys(objects).forEach(id => {
-        objects[id].update(dt)
-    });
+function update(dt, context) {
+    if (curr_patch) curr_patch.update(dt, context)
 }
 
 let start, previousTimeStamp;
@@ -101,7 +87,7 @@ function animate(timeStamp) {
     const elapsed = timeStamp - start;
 
     if (previousTimeStamp !== timeStamp) {
-        update(elapsed)
+        update(elapsed, context)
         render(context)
     }
 

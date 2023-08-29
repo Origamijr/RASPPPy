@@ -1,5 +1,5 @@
 import json
-import pathlib
+from collections import OrderedDict
 
 from core.object import Object
 from core.utils import import_dir
@@ -10,15 +10,14 @@ class Patch(Object):
     def __init__(self, filename=None):
         super().__init__()
         self.name = 'Untitled'
-        self.objects: list[Object] = []
+        self.objects: OrderedDict[int, Object] = OrderedDict()
         if filename is not None: self.load(filename)
 
     def add_object(self, obj: Object):
-        self.objects.append(obj)
+        self.objects[obj.id] = obj
 
     def get_object(self, id):
-        query = [o for o in self.objects if o.id == id]
-        return None if len(query) == 0 else query[0]
+        return self.objects[id] if id in self.objects else None
 
     def load(self, filename):
         with open(filename, 'r') as f:
@@ -26,18 +25,20 @@ class Patch(Object):
         
         self.name = data['name']
 
-        self.objects = []
+        self.objects = {}
+        id_map = dict()
         module = import_dir(CONFIG['base_library'])
-        for obj in data['objects']:
-            class_ = getattr(module, obj['class'])
-            self.objects.append(class_())
-            self.objects[-1].set_properties(obj['properties'])
+        for info in data['objects']:
+            class_ = getattr(module, info['class'])
+            obj = class_()
+            id_map[info['id']] = obj.id
+            self.objects[obj.id] = obj
+            self.objects[obj.id].set_properties(**info['properties'])
 
-        inds = {obj['id']: i for i, obj in enumerate(data['objects'])}
-        for obj, info in zip(self.objects, data['objects']):
-            for port, wires in enumerate(info['outputs']):
-                for wire in wires:
-                    obj.wire(port, self.objects[inds[wire['id']]], wire['port'])
+        for obj, info in zip(self.objects.values(), data['objects']):
+            for port, io in enumerate(info['outputs']):
+                for wire in io['wires']:
+                    obj.wire(port, self.objects[id_map[wire['id']]], wire['port'])
 
     def serialize(self):
         return {
@@ -48,7 +49,7 @@ class Patch(Object):
                 'id': w.object.id,
                 'port': w.port
             } for w in io.wires] for io in self.outputs],
-            'objects': [obj.serialize() for obj in self.objects],
+            'objects': [obj.serialize() for obj in self.objects.values()],
             'properties': self.properties
         }
 
@@ -58,12 +59,13 @@ class Patch(Object):
 
 
 if __name__ == "__main__":
-    from objects import *
+    module = import_dir('objects')
+    globals().update({name: module.__dict__[name] for name in module.__dict__ if not name.startswith('_')})
     p = Patch()
-    n1 = Number({'value': 1})
-    n2 = Number({'value': 2})
-    a = Add()
-    pr = Print()
+    n1 = Number(1, position=(0,0))
+    n2 = Number(2, position=(100,0))
+    a = Add(position=(0,50))
+    pr = Print(position=(0,100))
     n1.wire(0, a, 0)
     n2.wire(0, a, 1)
     a.wire(0, pr, 0)
@@ -71,11 +73,11 @@ if __name__ == "__main__":
     p.add_object(n2)
     p.add_object(a)
     p.add_object(pr)
-    p.objects[1].bang()
-    p.objects[0].bang()
-    p.save('examples/add.json')
-    p.load('examples/add.json')
+    list(p.objects.values())[1].bang()
+    list(p.objects.values())[0].bang()
+    p.save('examples/add_example.json')
+    p.load('examples/add_example.json')
     print(p)
-    p.objects[1].bang()
-    p.objects[0].bang()
+    list(p.objects.values())[1].bang()
+    list(p.objects.values())[0].bang()
     

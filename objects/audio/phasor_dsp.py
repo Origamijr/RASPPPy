@@ -1,7 +1,7 @@
 import numpy as np
 from numbers import Number
 
-from core.object import Object, DataType
+from core.object import Object, IOType
 from core.runtime import Runtime
 from core.config import config
 CONFIG = config(['audio'])
@@ -11,12 +11,21 @@ class Phasor_DSP(Object):
     """
     """
 
-    def __init__(self, properties=...):
-        super().__init__(properties)
-        self.add_input([DataType.SIGNAL, DataType.NUMBER])
-        self.add_output(DataType.SIGNAL)
-        self.properties = {'freq': 440} | self.properties
-        self.set_properties(self.properties)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_input(IOType.ANYTHING)
+        self.add_output(IOType.SIGNAL)
+
+        if len(self.properties['args']) >= 1:
+            value = self.properties['args'][0]
+            try:
+                value = int(value)
+            except ValueError:
+                value = float(value)
+            self.properties['freq'] = value
+        
+        self.properties = {'freq': 0} | self.properties
+        self.set_properties(**self.properties)
         self.last_value = 0
 
     def _convert_input_to_signal(self):
@@ -24,11 +33,11 @@ class Phasor_DSP(Object):
         if isinstance(self.inputs[0].value, Number):
             self.inputs[0].value = np.full(CONFIG['chunk_size'], self.inputs[0].value)
 
-    def set_properties(self, properties):
-        if 'freq' in properties:
-            self.inputs[0].value = self.properties['freq']
+    def set_properties(self, **kwargs):
+        if 'freq' in kwargs:
+            self.inputs[0].value = kwargs['freq']
             self._convert_input_to_signal()
-        super().set_properties(properties)
+        super().set_properties(**kwargs)
 
     def bang(self, port=0):
         if port == 0:

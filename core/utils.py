@@ -4,7 +4,7 @@ import inspect
 import os
 import types
 
-def import_dir(directory):
+def import_dir(directory, verbose=False):
     # From ChatGPT
     module = types.ModuleType("my_module")
     for file in glob.glob(f"{directory}/**/*.py", recursive=True):
@@ -25,6 +25,7 @@ def import_dir(directory):
             if inspect.isclass(attribute) and attribute.__module__ == module_file.__name__:
                 # Add the class to the new module
                 setattr(module, attribute_name, attribute)
+                if verbose: print(attribute_name)
     return module
 
 def singleton(cls):

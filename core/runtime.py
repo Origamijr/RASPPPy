@@ -1,42 +1,46 @@
 import numpy as np
 
 from core.patch import Patch
-from core.object import Blank, Blank_DSP, DataType, AudioIOObject
+from core.object import Blank, Blank_DSP, IOType, AudioIOObject
 from core.audio_server import AudioServer
 from core.logger import log
 from core.config import config
 CONFIG = config(['audio'])
 
 class Runtime():
-    patches: Patch = []
+    patches: dict[int,Patch] = dict()
     arrays = dict()
     dsp_order = []
     dsp = False
 
     @staticmethod
     def new_patch():
-        Runtime.patches.append(Patch())
-        return Runtime.patches[-1]
+        patch = Patch()
+        Runtime.patches[patch.id] = patch
+        return patch
 
     @staticmethod
     def open_patch(filename) -> Patch:
-        Runtime.patches.append(Patch(filename))
-        return Runtime.patches[-1]
+        patch = Patch(filename)
+        Runtime.patches[patch.id] = patch
+        return patch
     
     @staticmethod
-    def save_patch(filename):
-        Runtime.patches[0].save(filename) # TODO hard coded
+    def save_patch(patch_id, filename):
+        Runtime.patches[patch_id].save(filename) # TODO hard coded
 
     @staticmethod
     def compute_dsp_graph() -> Patch:
         Runtime.dsp_order = []
-        objects = [object for patch in Runtime.patches for object in patch.objects if object.dsp]
+
+        # flatten all dsp objects in the runtime
+        objects = [object for patch in Runtime.patches.values() for object in patch.objects.values() if object.dsp]
         # TODO also add the eventual blank objects created for inlets/outlets/send/rec~
         
         seen = set()
         def topological_sort_helper(dsp_node):
             for output in dsp_node.outputs:
-                if output.type != DataType.SIGNAL or (isinstance(output.type, list) and DataType.SIGNAL not in output.type): continue
+                if output.type != IOType.SIGNAL or (isinstance(output.type, list) and IOType.SIGNAL not in output.type): continue
                 for wire in output.wires:
                     if wire.object not in seen:
                         seen.add(wire.object)
@@ -51,7 +55,7 @@ class Runtime():
         seen = set()
         for object in Runtime.dsp_order:
             for output in object.outputs:
-                if output.type != DataType.SIGNAL or (isinstance(output.type, list) and DataType.SIGNAL not in output.type): continue
+                if output.type != IOType.SIGNAL or (isinstance(output.type, list) and IOType.SIGNAL not in output.type): continue
                 for wire in output.wires:
                     if wire.object in seen:
                         cycle = True
@@ -106,14 +110,16 @@ class Runtime():
         log('DSP Disabled')
 
 if __name__ == "__main__":
-    from objects import *
     import time
+    from core.utils import import_dir
+    module = import_dir('objects')
+    globals().update({name: module.__dict__[name] for name in module.__dict__ if not name.startswith('_')})
     p = Patch()
-    adc = ADC_DSP()
-    dac = DAC_DSP()
-    ph = Phasor_DSP({'freq': 660})
-    g = Multiply_DSP({'value': 0.01})
-    l = Multiply_DSP({'value': 0.9})
+    adc = ADC_DSP(position=(0,0))
+    dac = DAC_DSP(position=(0,150))
+    ph = Phasor_DSP(660, position=(100,0))
+    g = Multiply_DSP(0.01, position=(100,50))
+    l = Multiply_DSP(0.9, position=(0,100))
     p.add_object(adc)
     p.add_object(dac)
     p.add_object(ph)
@@ -125,7 +131,7 @@ if __name__ == "__main__":
     l.wire(0, dac, 0)
     l.wire(0, dac, 1)
     p.save('examples/phasor_loopback.json')
-    Runtime.open_patch('examples/phasor_loopback.json')
+    p = Runtime.open_patch('examples/phasor_loopback.json')
     print(Runtime.compute_dsp_graph())
     Runtime.start_dsp()
     time.sleep(5)

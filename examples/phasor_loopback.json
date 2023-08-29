@@ -7,107 +7,197 @@
         {
             "id": 2,
             "class": "ADC_DSP",
-            "name": "adc~",
-            "position": [
-                0,
-                0
-            ],
+            "inputs": [],
             "outputs": [
-                [
-                    {
-                        "id": 6,
-                        "port": 0
-                    }
-                ],
-                []
+                {
+                    "wires": [
+                        {
+                            "id": 6,
+                            "port": 0
+                        }
+                    ],
+                    "type": "SIGNAL"
+                },
+                {
+                    "wires": [],
+                    "type": "SIGNAL"
+                }
             ],
             "properties": {
                 "channels": [
                     0,
                     1
-                ]
+                ],
+                "position": [
+                    0,
+                    0
+                ],
+                "args": [],
+                "text": "adc~"
             }
         },
         {
             "id": 3,
             "class": "DAC_DSP",
-            "name": "dac~",
-            "position": [
-                0,
-                0
+            "inputs": [
+                {
+                    "wires": [
+                        {
+                            "id": 6,
+                            "port": 0
+                        }
+                    ],
+                    "type": "SIGNAL"
+                },
+                {
+                    "wires": [
+                        {
+                            "id": 6,
+                            "port": 0
+                        }
+                    ],
+                    "type": "SIGNAL"
+                }
             ],
             "outputs": [],
             "properties": {
                 "channels": [
                     0,
                     1
-                ]
+                ],
+                "position": [
+                    0,
+                    150
+                ],
+                "args": [],
+                "text": "dac~"
             }
         },
         {
             "id": 4,
             "class": "Phasor_DSP",
-            "name": "phasor~",
-            "position": [
-                0,
-                0
+            "inputs": [
+                {
+                    "wires": [],
+                    "type": "ANYTHING"
+                }
             ],
             "outputs": [
-                [
-                    {
-                        "id": 5,
-                        "port": 0
-                    }
-                ]
+                {
+                    "wires": [
+                        {
+                            "id": 5,
+                            "port": 0
+                        }
+                    ],
+                    "type": "SIGNAL"
+                }
             ],
             "properties": {
-                "freq": 660
+                "freq": 660,
+                "position": [
+                    100,
+                    0
+                ],
+                "args": [
+                    "660"
+                ],
+                "text": "phasor~ 660"
             }
         },
         {
             "id": 5,
             "class": "Multiply_DSP",
-            "name": "multiply~",
-            "position": [
-                0,
-                0
+            "inputs": [
+                {
+                    "wires": [
+                        {
+                            "id": 4,
+                            "port": 0
+                        }
+                    ],
+                    "type": "SIGNAL"
+                },
+                {
+                    "wires": [],
+                    "type": "ANYTHING"
+                }
             ],
             "outputs": [
-                [
-                    {
-                        "id": 6,
-                        "port": 0
-                    }
-                ]
+                {
+                    "wires": [
+                        {
+                            "id": 6,
+                            "port": 0
+                        }
+                    ],
+                    "type": "SIGNAL"
+                }
             ],
             "properties": {
-                "value": 0.01
+                "value": 0.01,
+                "position": [
+                    100,
+                    50
+                ],
+                "args": [
+                    "0.01"
+                ],
+                "text": "multiply~ 0.01"
             }
         },
         {
             "id": 6,
             "class": "Multiply_DSP",
-            "name": "multiply~",
-            "position": [
-                0,
-                0
+            "inputs": [
+                {
+                    "wires": [
+                        {
+                            "id": 2,
+                            "port": 0
+                        },
+                        {
+                            "id": 5,
+                            "port": 0
+                        }
+                    ],
+                    "type": "SIGNAL"
+                },
+                {
+                    "wires": [],
+                    "type": "ANYTHING"
+                }
             ],
             "outputs": [
-                [
-                    {
-                        "id": 3,
-                        "port": 0
-                    },
-                    {
-                        "id": 3,
-                        "port": 1
-                    }
-                ]
+                {
+                    "wires": [
+                        {
+                            "id": 3,
+                            "port": 0
+                        },
+                        {
+                            "id": 3,
+                            "port": 1
+                        }
+                    ],
+                    "type": "SIGNAL"
+                }
             ],
             "properties": {
-                "value": 0.9
+                "value": 0.9,
+                "position": [
+                    0,
+                    100
+                ],
+                "args": [
+                    "0.9"
+                ],
+                "text": "multiply~ 0.9"
             }
         }
     ],
-    "properties": {}
+    "properties": {
+        "args": [],
+        "text": "patch"
+    }
 }

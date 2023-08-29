@@ -1,14 +1,13 @@
-from core.object import Object, DataType
+from core.object import Object, IOType
 from core.logger import log
 
 class Print(Object):
     """
     """
 
-    def __init__(self, properties=...):
-        super().__init__(properties)
-        self.add_input(DataType.ANYTHING)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_input(IOType.MESSAGE)
 
     def bang(self, port=0):
-        super().bang(port)
         log(self.inputs[0].value)

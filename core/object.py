@@ -6,26 +6,11 @@ from dataclasses import dataclass
 from core.config import config
 from core.audio_server import BUFSIZE
 
-class DataType(Enum):
+class IOType(Enum):
     BANG = 0
-    NUMBER = auto()
-    STRING = auto()
+    MESSAGE = auto()
     SIGNAL = auto()
-    ARRAY = auto()
-    LIST = auto()
-    DICTIONARY = auto()
     ANYTHING = auto()
-
-    def default(cls):
-        match cls:
-            case DataType.BANG: return None
-            case DataType.NUMBER: return 0
-            case DataType.SIGNAL: return None
-            case DataType.ARRAY: return np.array([])
-            case DataType.STRING: return ''
-            case DataType.LIST: return []
-            case DataType.DICTIONARY: return dict()
-            case DataType.ANYTHING: return None
     
 class WireException(Exception):
     def __init__(self, obj: 'Object', output, msg='', *args, **kwargs):
@@ -39,23 +24,26 @@ class Object:
         class WireInfo: 
             object: 'Object'
             port: int
-        def __init__(self, type: DataType|list[DataType]):
-            assert isinstance(type, DataType) or (DataType.BANG not in type and DataType.ANYTHING not in type), 'Invalid IO port type'
-            self.type: DataType|list[DataType] = type
+        def __init__(self, type: IOType):
+            self.type: IOType = type
             self.wires: list[Object.ObjectIO.WireInfo] = []
-            self.value = type[0].default() if isinstance(type, list) else type.default()
+            self.value = None
 
-    def __init__(self, properties=...):
+    def __init__(self, *args, **kwargs):
         self.id = next(Object.id_iter)
         self.inputs: list[Object.ObjectIO] = []
         self.outputs: list[Object.ObjectIO]  = []
-        self.position: tuple[float,float] = (0,0)
         
-        self.properties = properties if properties != ... else dict()
+        self.properties = kwargs if kwargs != ... else dict()
+        self.properties['args'] = list(args)
+        if 'text' not in self.properties:
+            text = f"{self.__class__.__name__.lower().replace('_dsp', '~')} {' '.join([str(a) for a in self.properties['args']])}"
+            self.set_text(text.strip())
 
         self.dsp = False
         self.audio_input = False
         self.audio_output = False
+
 
     def serialize(self):
         return {
@@ -63,30 +51,46 @@ class Object:
             # e.g. display name, position, etc
             'id': self.id,
             'class': self.__class__.__name__,
-            'name': self.__class__.__name__.lower().replace('_dsp', '~'),
-            'position': list(self.position),
-            'outputs': [[{
-                'id': w.object.id,
-                'port': w.port
-            } for w in io.wires] for io in self.outputs],
+            'inputs': [{
+                'wires': [{
+                    'id': w.object.id,
+                    'port': w.port
+                } for w in io.wires],
+                'type': io.type.name,
+            } for io in self.inputs],
+            'outputs': [{
+                'wires': [{
+                    'id': w.object.id,
+                    'port': w.port
+                } for w in io.wires],
+                'type': io.type.name,
+            } for io in self.outputs],
             'properties': self.properties
         }
     
     def __repr__(self):
         return repr(self.serialize())
     
-    def set_properties(self, properties):
-        self.properties |= properties
+    def set_properties(self, **kwargs):
+        self.properties |= kwargs
 
     def set_position(self, x, y):
-        self.position = (x, y)
+        self.set_properties(position=(x,y))
 
-    def add_input(self, type: DataType|list[DataType]):
+    def set_text(self, text):
+        properties = {}
+        properties['text'] = text
+        properties['args'] = []
+        for arg in text.split(' ')[1:]:
+            properties['args'].append(arg)
+        self.set_properties(**properties)
+
+    def add_input(self, type: IOType):
         self.inputs.append(Object.ObjectIO(type))
         self._check_signal_port()
 
-    def add_output(self, type: DataType|list[DataType]):
-        assert not (isinstance(type, list) and len(type) > 1 and DataType.SIGNAL in type), 'SIGNAL type output must be only'
+    def add_output(self, type: IOType):
+        assert type != IOType.ANYTHING, 'Output type must be specific'
         self.outputs.append(Object.ObjectIO(type))
         self._check_signal_port()
 
@@ -108,8 +112,8 @@ class Object:
 
     def _check_signal_port(self):
         self.dsp = self.audio_input or self.audio_output \
-                   or any([(DataType.SIGNAL in input.type if isinstance(input.type, list) else input.type == DataType.SIGNAL) for input in self.inputs]) \
-                   or any([(DataType.SIGNAL in output.type if isinstance(output.type, list) else output.type == DataType.SIGNAL) for output in self.outputs])
+                   or any([(IOType.SIGNAL in input.type if isinstance(input.type, list) else input.type == IOType.SIGNAL) for input in self.inputs]) \
+                   or any([(output.type == IOType.SIGNAL) for output in self.outputs])
 
     def wire(self, output, other: 'Object', other_input):
         if output >= len(self.outputs) or other_input >= len(other.inputs):
@@ -117,11 +121,8 @@ class Object:
         
         type1 = self.outputs[output].type
         type2 = other.inputs[other_input].type
-        type1 = type1 if isinstance(type1, list) else [type1]
-        type2 = type2 if isinstance(type2, list) else [type2]
-        # Bangs should be compatible with all types, otherwise outputs must be subset of inputs
-        if not (type1[0] == DataType.BANG or type2[0] == DataType.BANG) and (type2[0] != DataType.ANYTHING and not set(type1).issubset(set(type2))):
-            raise WireException(self, output, 'incompatible data types')
+        if type1 != IOType.BANG and type2 != IOType.ANYTHING and type1 != type2:
+            raise WireException(self, output, f'incompatible data types {type1} and {type2}')
         
         self.outputs[output].wires.append(Object.ObjectIO.WireInfo(other, other_input))
         other.inputs[other_input].wires.append(Object.ObjectIO.WireInfo(self, output))
@@ -136,14 +137,14 @@ class Object:
 
     def send(self):
         for output in reversed(self.outputs):
-            if output.type == DataType.SIGNAL: continue
+            if output.type == IOType.SIGNAL: continue
             for wire in output.wires:
-                if output.type != DataType.BANG and wire.object.inputs[wire.port].type != DataType.BANG:
+                if output.type != IOType.BANG and wire.object.inputs[wire.port].type != IOType.BANG:
                     wire.object.set(wire.port, output.value)
                 wire.object.bang(wire.port)
 
     def bang(self, port=0):
-        assert 0 <= port < len(self.inputs)
+        raise NotImplementedError(f'{self.__class__.__name__}')
 
     def process_signal(self):
         raise NotImplementedError(f'DSP object {self.__class__.__name__} process_signal not implemented')
@@ -152,7 +153,7 @@ class Object:
         assert self.dsp
         self.process_signal()
         for output in self.outputs:
-            if output.type != DataType.SIGNAL: continue
+            if output.type != IOType.SIGNAL: continue
             for wire in output.wires:
                 if wire.object.inputs[wire.port].value is not None:
                     wire.object.inputs[wire.port].value += output.value
@@ -160,11 +161,12 @@ class Object:
                     wire.object.inputs[wire.port].value = output.value
 
     def reset_dsp(self):
+        # Reset DSP object inputs if receiving a signal input
         assert self.dsp
         for input in self.inputs:
-            if input.type != DataType.SIGNAL or (isinstance(input.type, list) and DataType.SIGNAL not in input.type): continue
+            if input.type != IOType.SIGNAL and input.type != IOType.ANYTHING: continue
             for wire in input.wires:
-                if wire.object.outputs[wire.port].type == DataType.SIGNAL:
+                if wire.object.outputs[wire.port].type == IOType.SIGNAL:
                     input.value = None
                     break
 
@@ -173,8 +175,8 @@ class AudioIOObject(Object):
     """
     """
 
-    def __init__(self, properties=...):
-        super().__init__(properties)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.audio_io_buffer: np.ndarray = np.zeros(config(['audio', 'chunk_size']))
 
     def process_signal(self):
@@ -185,10 +187,10 @@ class Blank(Object):
     """
     Simple object that propogates the input to the output
     """
-    def __init__(self, properties=...):
-        super().__init__(properties)
-        self.add_input(DataType.ANYTHING)
-        self.add_output(DataType.ANYTHING)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_input(IOType.ANYTHING)
+        self.add_output(IOType.ANYTHING)
 
     def bang(self, port=0):
         super().bang(port)
@@ -199,10 +201,10 @@ class Blank_DSP(Object):
     """
     Simple object that propogates the input to the output
     """
-    def __init__(self, properties=...):
-        super().__init__(properties)
-        self.add_input(DataType.SIGNAL)
-        self.add_output(DataType.SIGNAL)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_input(IOType.SIGNAL)
+        self.add_output(IOType.SIGNAL)
 
     def process_signal(self):
         super().process_signal()
