@@ -20,7 +20,7 @@ function createWindow() {
 
   const menu = Menu.buildFromTemplate([
     {
-      label: 'Menu',
+      label: 'File',
       submenu: [
         {
           label: 'Open Patch',
@@ -54,7 +54,25 @@ function createWindow() {
           }
         }
       ]
-    }
+    },{
+      label: 'Edit',
+      submenu: [
+        {
+          label: 'Delete',
+          accelerator: 'Backspace',
+          click() {
+            mainWindow.webContents.send('DELETE_OBJECT', {})
+          }
+        },
+        {
+          label: 'Delete (invisible)',
+          accelerator: 'Delete',
+          click() {
+            mainWindow.webContents.send('DELETE_OBJECT', {})
+          }
+        },
+      ]
+    },
   ])
   Menu.setApplicationMenu(menu)
 

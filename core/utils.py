@@ -68,3 +68,11 @@ def timing(f):
           (f.__name__, args, kw, te-ts))
         return result
     return wrap
+
+def infer_string_type(s):
+    try:
+        return int(s)
+    except ValueError:
+        return float(s)
+    except ValueError:
+        return s

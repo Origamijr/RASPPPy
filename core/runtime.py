@@ -1,4 +1,5 @@
 import numpy as np
+from asyncio import Queue
 
 from core.patch import Patch
 from core.object import Blank, Blank_DSP, IOType, AudioIOObject
@@ -12,6 +13,8 @@ class Runtime():
     arrays = dict()
     dsp_order = []
     dsp = False
+
+    #execution_queue = Queue()
 
     @staticmethod
     def new_patch():

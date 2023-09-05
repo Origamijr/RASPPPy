@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from core.config import config
 from core.audio_server import BUFSIZE
+from core.utils import infer_string_type
 
 class IOType(Enum):
     BANG = 0
@@ -16,10 +17,17 @@ class WireException(Exception):
     def __init__(self, obj: 'Object', output, msg='', *args, **kwargs):
         super().__init__(f'Invalid output {output} for object {obj.__class__.__name__} id {obj.id}: {msg}', *args, **kwargs)
 
+class PropertyException(Exception):
+    def __init__(self, obj: 'Object', property, msg='', *args, **kwargs):
+        super().__init__(f'Object {obj.id} of type {obj.__class__.__name__} invalid property {property}: {msg}', *args, **kwargs)
+
 class Object:
     id_iter = itertools.count(start = 1)
 
     class ObjectIO:
+        """
+        Represents a single input/output port for an object
+        """
         @dataclass
         class WireInfo: 
             object: 'Object'
@@ -34,21 +42,25 @@ class Object:
         self.inputs: list[Object.ObjectIO] = []
         self.outputs: list[Object.ObjectIO]  = []
         
+        # Read arguments into the object properties
         self.properties = kwargs if kwargs != ... else dict()
+        if 'position' not in self.properties: self.set_position(0, 0)
         self.properties['args'] = list(args)
         if 'text' not in self.properties:
             text = f"{self.__class__.__name__.lower().replace('_dsp', '~')} {' '.join([str(a) for a in self.properties['args']])}"
             self.set_text(text.strip())
 
+        # Additional tags
         self.dsp = False
         self.audio_input = False
         self.audio_output = False
 
 
     def serialize(self):
+        """
+        Return a json serializable representation of the object for saving and gui loading
+        """
         return {
-            # TODO more entries specifically for how the object will load in gui
-            # e.g. display name, position, etc
             'id': self.id,
             'class': self.__class__.__name__,
             'inputs': [{
@@ -71,22 +83,41 @@ class Object:
     def __repr__(self):
         return repr(self.serialize())
     
-    def set_properties(self, **kwargs):
+    def set_properties(self, *args, **kwargs):
+        """ 
+        Overwrites the properties with the input arguments. Does not require properties to exist
+        """
         self.properties |= kwargs
+        if len(args) > 0:
+            self.properties['args'] = list(args)
+
+    def change_properties(self, *args, **kwargs):
+        """ 
+        Overwrites the properties with the input arguments. Requires the properties to exist
+        """
+        for key in kwargs:
+            if key not in self.properties: raise PropertyException(self, key, 'Attempt to change nonexistant property')
+        for key in kwargs:
+            self.properties[key] = kwargs[key]
+        if len(args) > 0:
+            self.properties['args'] = list(args)
 
     def set_position(self, x, y):
+        """ 
+        Sets the position of the object in the GUI
+        """
         self.set_properties(position=(x,y))
 
     def set_text(self, text):
-        properties = {}
-        properties['text'] = text
-        properties['args'] = []
-        for arg in text.split(' ')[1:]:
-            properties['args'].append(arg)
-        self.set_properties(**properties)
+        """ 
+        Sets the display text that is shown in the GUI. Also parses the arges if applicable
+        """
+        args = [infer_string_type(a) for a in text.split(' ')[1:]]
+        self.set_properties(*args, text=text)
 
-    def add_input(self, type: IOType):
+    def add_input(self, type: IOType, default=None):
         self.inputs.append(Object.ObjectIO(type))
+        if default: self.inputs[-1].value = default
         self._check_signal_port()
 
     def add_output(self, type: IOType):
@@ -116,6 +147,9 @@ class Object:
                    or any([(output.type == IOType.SIGNAL) for output in self.outputs])
 
     def wire(self, output, other: 'Object', other_input):
+        """
+        Connects output of this object to the input of another
+        """
         if output >= len(self.outputs) or other_input >= len(other.inputs):
             raise WireException(self, output, 'port out of range')
         
@@ -127,12 +161,20 @@ class Object:
         self.outputs[output].wires.append(Object.ObjectIO.WireInfo(other, other_input))
         other.inputs[other_input].wires.append(Object.ObjectIO.WireInfo(self, output))
     
-    def disconnect(self, port, id):
-        other = [o for o in self.outputs[port].wires if o.object.id == id][0]
-        other.inputs[self.outputs[port].port].wires = [wire for wire in other.inputs[self.outputs[port].port].wires if wire.object.id != self.id]
-        self.outputs[port].wires = [wire for wire in self.outputs[port].wires if wire.object.id != id]
+    def disconnect(self, out_port, id, in_port):
+        """
+        Disconnects output of this object from the input of another if a connection exists
+        """
+        other = [wire for wire in self.outputs[out_port].wires if wire.object.id == id and wire.port == in_port]
+        if len(other) == 0: raise WireException(self, out_port, 'disconnecting nonexistant wire')
+        other = other[0]
+        other.inputs[self.outputs[out_port].port].wires = [wire for wire in other.inputs[in_port].wires if wire.object.id != self.id or wire.port != out_port]
+        self.outputs[out_port].wires = [wire for wire in self.outputs[out_port].wires if wire.object.id != id or wire.port != in_port]
 
-    def set(self, input, value):
+    def set_input(self, input, value):
+        """
+        Sets the value stored in an input port
+        """
         self.inputs[input].value = value
 
     def send(self):
@@ -140,8 +182,11 @@ class Object:
             if output.type == IOType.SIGNAL: continue
             for wire in output.wires:
                 if output.type != IOType.BANG and wire.object.inputs[wire.port].type != IOType.BANG:
-                    wire.object.set(wire.port, output.value)
-                wire.object.bang(wire.port)
+                    wire.object.set_input(wire.port, output.value)
+                wire.object._bang(wire.port)
+
+    def _bang(self, port=0):
+        self.bang(port=port)
 
     def bang(self, port=0):
         raise NotImplementedError(f'{self.__class__.__name__}')
@@ -178,6 +223,33 @@ class AudioIOObject(Object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.audio_io_buffer: np.ndarray = np.zeros(config(['audio', 'chunk_size']))
+
+    def process_signal(self):
+        assert self.audio_input or self.audio_output, 'AudioIOObject not designated as audio IO'
+        super().process_signal()
+
+
+class AsyncObject(Object):
+    """
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def add_output(self, type: IOType):
+        assert type != IOType.SIGNAL, "Async blocks cannot output a signal"
+        super().add_output(type)
+    
+    def send(self):
+        for output in reversed(self.outputs):
+            if output.type == IOType.SIGNAL: continue
+            for wire in output.wires:
+                if output.type != IOType.BANG and wire.object.inputs[wire.port].type != IOType.BANG:
+                    wire.object.set_input(wire.port, output.value)
+                wire.object._bang(wire.port)
+
+    def _bang(self, port=0):
+        self.bang(port=port)
 
     def process_signal(self):
         assert self.audio_input or self.audio_output, 'AudioIOObject not designated as audio IO'

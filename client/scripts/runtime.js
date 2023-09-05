@@ -1,8 +1,6 @@
-function delay(time) {
-    return new Promise(resolve => setTimeout(resolve, time));
-  }
+// where python interfacing is relegated
 
-let patches = {}
+let patches = {} // TODO wrap into a class to avoid global scope
 window.electronAPI.openPatch(async (event, value) => {
     //console.log('got FILE_OPEN', event, value)
     let info = await eel.open_patch(value[0])()
@@ -18,9 +16,8 @@ window.electronAPI.savePatch(async (event, value) => {
     await eel.save_patch(patches[0][1])() // TODO save is hard coded
 })
 
-let checkbox = document.getElementById("dsp_toggle");
-checkbox.addEventListener("change", () => {
-    if (checkbox.checked) {
+document.getElementById("dsp_toggle").addEventListener("change", () => {
+    if (document.getElementById("dsp_toggle").checked) {
         eel.toggle_dsp(true)
     } else {
         eel.toggle_dsp(false)

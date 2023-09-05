@@ -1,9 +1,10 @@
 import json
 from collections import OrderedDict
 
-from core.object import Object
+from core.object import Object, WireException
 from core.utils import import_dir
 from core.config import config
+from core.logger import log
 CONFIG = config(['files'])
 
 class Patch(Object):
@@ -56,6 +57,16 @@ class Patch(Object):
     def save(self, filename):
         with open(filename, 'w') as f:
             json.dump(self.serialize(), f, indent=4)
+
+    def wire(self, src_id, src_port, dest_id, dest_port):
+        self.objects[src_id].wire(src_port, self.objects[dest_id], dest_port)
+        
+    def disconnect(self, src_id, src_port, dest_id, dest_port):
+        self.objects[src_id].disconnect(src_port, self.objects[dest_id], dest_port)
+        
+    def change_properties(self, id, *args, **kwargs):
+        self.objects[id].change_properties(*args, **kwargs)
+        
 
 
 if __name__ == "__main__":

@@ -6,8 +6,8 @@ class Add(Object):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.add_input(IOType.MESSAGE)
-        self.add_input(IOType.MESSAGE)
+        self.add_input(IOType.MESSAGE, default=0)
+        self.add_input(IOType.MESSAGE, default=0)
         self.add_output(IOType.MESSAGE)
         
         if len(self.properties['args']) >= 1:

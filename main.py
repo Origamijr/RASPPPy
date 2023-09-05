@@ -29,4 +29,4 @@ def close_callback(route, websockets):
     Runtime.stop_dsp()
     os._exit(0)
 
-eel.start('index.html', mode='electron', close_callback=close_callback)
+eel.start('index.html', mode='electron', close_callback=close_callback, blocking=False)
