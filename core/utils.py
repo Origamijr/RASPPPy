@@ -73,6 +73,7 @@ def infer_string_type(s):
     try:
         return int(s)
     except ValueError:
-        return float(s)
-    except ValueError:
-        return s
+        try:
+            return float(s)
+        except ValueError:
+            return s

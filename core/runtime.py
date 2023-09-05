@@ -117,22 +117,21 @@ if __name__ == "__main__":
     from core.utils import import_dir
     module = import_dir('objects')
     globals().update({name: module.__dict__[name] for name in module.__dict__ if not name.startswith('_')})
+    
     p = Patch()
-    adc = ADC_DSP(position=(0,0))
-    dac = DAC_DSP(position=(0,150))
-    ph = Phasor_DSP(660, position=(100,0))
-    g = Multiply_DSP(0.01, position=(100,50))
-    l = Multiply_DSP(0.9, position=(0,100))
-    p.add_object(adc)
-    p.add_object(dac)
-    p.add_object(ph)
-    p.add_object(g)
-    p.add_object(l)
+
+    adc = p.add_object(ADC_DSP(position=(0,0)))
+    dac = p.add_object(DAC_DSP(position=(0,150)))
+    ph  = p.add_object(Phasor_DSP(660, position=(100,0)))
+    g   = p.add_object(Multiply_DSP(0.01, position=(100,50)))
+    l   = p.add_object(Multiply_DSP(0.9, position=(0,100)))
+    
     adc.wire(0, l, 0)
     ph.wire(0, g, 0)
     g.wire(0, l, 0)
     l.wire(0, dac, 0)
     l.wire(0, dac, 1)
+    
     p.save('examples/phasor_loopback.json')
     p = Runtime.open_patch('examples/phasor_loopback.json')
     print(Runtime.compute_dsp_graph())

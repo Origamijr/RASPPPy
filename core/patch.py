@@ -16,6 +16,7 @@ class Patch(Object):
 
     def add_object(self, obj: Object):
         self.objects[obj.id] = obj
+        return obj
 
     def get_object(self, id):
         return self.objects[id] if id in self.objects else None
@@ -56,7 +57,7 @@ class Patch(Object):
 
     def save(self, filename):
         with open(filename, 'w') as f:
-            json.dump(self.serialize(), f, indent=4)
+            json.dump(self.serialize(), f, indent=2)
 
     def wire(self, src_id, src_port, dest_id, dest_port):
         self.objects[src_id].wire(src_port, self.objects[dest_id], dest_port)
@@ -70,25 +71,30 @@ class Patch(Object):
 
 
 if __name__ == "__main__":
+    import gevent
     module = import_dir('objects')
     globals().update({name: module.__dict__[name] for name in module.__dict__ if not name.startswith('_')})
+    
     p = Patch()
-    n1 = Number(1, position=(0,0))
-    n2 = Number(2, position=(100,0))
-    a = Add(position=(0,50))
-    pr = Print(position=(0,100))
+    
+    b  = p.add_object(Bang(position=(0,0)))
+    t  = p.add_object(Trigger('b', 'b', position=(0,50)))
+    n1 = p.add_object(Number(1, position=(0,100)))
+    n2 = p.add_object(Number(2, position=(100,100)))
+    a  = p.add_object(Add(position=(0,150)))
+    pr = p.add_object(Print(position=(0,200)))
+    
+    b.wire(0, t, 0)
+    t.wire(0, n1, 0)
+    t.wire(1, n2, 0)
     n1.wire(0, a, 0)
     n2.wire(0, a, 1)
     a.wire(0, pr, 0)
-    p.add_object(n1)
-    p.add_object(n2)
-    p.add_object(a)
-    p.add_object(pr)
-    list(p.objects.values())[1].bang()
+
     list(p.objects.values())[0].bang()
+    
     p.save('examples/add_example.json')
     p.load('examples/add_example.json')
     print(p)
-    list(p.objects.values())[1].bang()
     list(p.objects.values())[0].bang()
     

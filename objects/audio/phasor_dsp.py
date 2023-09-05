@@ -15,29 +15,23 @@ class Phasor_DSP(Object):
         super().__init__(*args, **kwargs)
         self.add_input(IOType.ANYTHING)
         self.add_output(IOType.SIGNAL)
-
-        if len(self.properties['args']) >= 1:
-            value = self.properties['args'][0]
-            try:
-                value = int(value)
-            except ValueError:
-                value = float(value)
-            self.properties['freq'] = value
-        
-        self.properties = {'freq': 0} | self.properties
         self.set_properties(**self.properties)
+        
         self.last_value = 0
 
     def _convert_input_to_signal(self):
         # Convert port 0 input to a constant signal if it's a number
         if isinstance(self.inputs[0].value, Number):
             self.inputs[0].value = np.full(CONFIG['chunk_size'], self.inputs[0].value)
+        elif not isinstance(self.inputs[1].value, np.ndarray):
+            self.inputs[0].value = np.full(CONFIG['chunk_size'], 0)
 
-    def set_properties(self, **kwargs):
-        if 'freq' in kwargs:
-            self.inputs[0].value = kwargs['freq']
-            self._convert_input_to_signal()
-        super().set_properties(**kwargs)
+    def set_properties(self, *args, **kwargs):
+        super().set_properties(*args, **kwargs)
+        
+        if len(self.properties['args']) >= 1:
+            self.inputs[0].value = self.properties['args'][0]
+        self._convert_input_to_signal()
 
     def bang(self, port=0):
         if port == 0:

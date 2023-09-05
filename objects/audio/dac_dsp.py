@@ -13,7 +13,7 @@ class DAC_DSP(AudioIOObject):
         self.properties = {'channels': [0,1]} | self.properties
         self.set_properties(**self.properties)
 
-    def set_properties(self, **kwargs):
+    def set_properties(self, *args, **kwargs):
         if 'channels' in kwargs:
             num_channels = len(kwargs['channels'])
             if num_channels > len(self.channels):
@@ -23,7 +23,7 @@ class DAC_DSP(AudioIOObject):
                 for _ in range(len(self.channels) - num_channels):
                     self.remove_input()
             self.channels = list(kwargs['channels'])
-        super().set_properties(**kwargs)
+        super().set_properties(*args, **kwargs)
 
     def process_signal(self):
         self.audio_io_buffer = np.zeros((self.audio_io_buffer.shape[0], max(self.channels)+1))

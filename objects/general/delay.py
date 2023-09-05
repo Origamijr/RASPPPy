@@ -2,7 +2,7 @@ import gevent
 
 from core.object import Object, IOType
 
-class Print(Object):
+class Delay(Object):
     """
     """
 

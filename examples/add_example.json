@@ -1,144 +1,233 @@
 {
-    "id": 1,
-    "class": "Patch",
-    "name": "Untitled",
-    "outputs": [],
-    "objects": [
+  "id": 1,
+  "class": "Patch",
+  "name": "Untitled",
+  "outputs": [],
+  "objects": [
+    {
+      "id": 2,
+      "class": "Bang",
+      "inputs": [
         {
-            "id": 2,
-            "class": "Number",
-            "inputs": [
-                {
-                    "wires": [],
-                    "type": "MESSAGE"
-                }
-            ],
-            "outputs": [
-                {
-                    "wires": [
-                        {
-                            "id": 4,
-                            "port": 0
-                        }
-                    ],
-                    "type": "MESSAGE"
-                }
-            ],
-            "properties": {
-                "value": 1,
-                "position": [
-                    0,
-                    0
-                ],
-                "args": [
-                    "1"
-                ],
-                "text": "number 1"
-            }
-        },
-        {
-            "id": 3,
-            "class": "Number",
-            "inputs": [
-                {
-                    "wires": [],
-                    "type": "MESSAGE"
-                }
-            ],
-            "outputs": [
-                {
-                    "wires": [
-                        {
-                            "id": 4,
-                            "port": 1
-                        }
-                    ],
-                    "type": "MESSAGE"
-                }
-            ],
-            "properties": {
-                "value": 2,
-                "position": [
-                    100,
-                    0
-                ],
-                "args": [
-                    "2"
-                ],
-                "text": "number 2"
-            }
-        },
-        {
-            "id": 4,
-            "class": "Add",
-            "inputs": [
-                {
-                    "wires": [
-                        {
-                            "id": 2,
-                            "port": 0
-                        }
-                    ],
-                    "type": "MESSAGE"
-                },
-                {
-                    "wires": [
-                        {
-                            "id": 3,
-                            "port": 0
-                        }
-                    ],
-                    "type": "MESSAGE"
-                }
-            ],
-            "outputs": [
-                {
-                    "wires": [
-                        {
-                            "id": 5,
-                            "port": 0
-                        }
-                    ],
-                    "type": "MESSAGE"
-                }
-            ],
-            "properties": {
-                "value": 0,
-                "position": [
-                    0,
-                    50
-                ],
-                "args": [],
-                "text": "add"
-            }
-        },
-        {
-            "id": 5,
-            "class": "Print",
-            "inputs": [
-                {
-                    "wires": [
-                        {
-                            "id": 4,
-                            "port": 0
-                        }
-                    ],
-                    "type": "MESSAGE"
-                }
-            ],
-            "outputs": [],
-            "properties": {
-                "position": [
-                    0,
-                    100
-                ],
-                "args": [],
-                "text": "print"
-            }
+          "wires": [],
+          "type": "BANG"
         }
-    ],
-    "properties": {
+      ],
+      "outputs": [
+        {
+          "wires": [
+            {
+              "id": 3,
+              "port": 0
+            }
+          ],
+          "type": "BANG"
+        }
+      ],
+      "properties": {
+        "position": [
+          0,
+          0
+        ],
         "args": [],
-        "text": "patch"
+        "text": "bang"
+      }
+    },
+    {
+      "id": 3,
+      "class": "Trigger",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 2,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "outputs": [
+        {
+          "wires": [
+            {
+              "id": 4,
+              "port": 0
+            }
+          ],
+          "type": "BANG"
+        },
+        {
+          "wires": [
+            {
+              "id": 5,
+              "port": 0
+            }
+          ],
+          "type": "BANG"
+        }
+      ],
+      "properties": {
+        "position": [
+          0,
+          50
+        ],
+        "args": [
+          "b",
+          "b"
+        ],
+        "text": "trigger b b"
+      }
+    },
+    {
+      "id": 4,
+      "class": "Number",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 3,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "outputs": [
+        {
+          "wires": [
+            {
+              "id": 6,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "properties": {
+        "value": 1,
+        "position": [
+          0,
+          100
+        ],
+        "args": [
+          1
+        ],
+        "text": "number 1"
+      }
+    },
+    {
+      "id": 5,
+      "class": "Number",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 3,
+              "port": 1
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "outputs": [
+        {
+          "wires": [
+            {
+              "id": 6,
+              "port": 1
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "properties": {
+        "value": 2,
+        "position": [
+          100,
+          100
+        ],
+        "args": [
+          2
+        ],
+        "text": "number 2"
+      }
+    },
+    {
+      "id": 6,
+      "class": "Add",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 4,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        },
+        {
+          "wires": [
+            {
+              "id": 5,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "outputs": [
+        {
+          "wires": [
+            {
+              "id": 7,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "properties": {
+        "value": 0,
+        "position": [
+          0,
+          150
+        ],
+        "args": [],
+        "text": "add"
+      }
+    },
+    {
+      "id": 7,
+      "class": "Print",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 6,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "position": [
+          0,
+          200
+        ],
+        "args": [],
+        "text": "print"
+      }
     }
+  ],
+  "properties": {
+    "position": [
+      0,
+      0
+    ],
+    "args": [],
+    "text": "patch"
+  }
 }

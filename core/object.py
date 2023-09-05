@@ -44,11 +44,10 @@ class Object:
         
         # Read arguments into the object properties
         self.properties = kwargs if kwargs != ... else dict()
-        if 'position' not in self.properties: self.set_position(0, 0)
-        self.properties['args'] = list(args)
+        if 'position' not in self.properties: self.properties['position'] = (0,0)
+        if 'args' not in self.properties: self.properties['args'] = list(args)
         if 'text' not in self.properties:
-            text = f"{self.__class__.__name__.lower().replace('_dsp', '~')} {' '.join([str(a) for a in self.properties['args']])}"
-            self.set_text(text.strip())
+            self.properties['text'] = f"{self.__class__.__name__.lower().replace('_dsp', '~')} {' '.join([str(a) for a in self.properties['args']])}"
 
         # Additional tags
         self.dsp = False
