@@ -23,7 +23,7 @@ class Phasor_DSP(Object):
         # Convert port 0 input to a constant signal if it's a number
         if isinstance(self.inputs[0].value, Number):
             self.inputs[0].value = np.full(CONFIG['chunk_size'], self.inputs[0].value)
-        elif not isinstance(self.inputs[1].value, np.ndarray):
+        elif not isinstance(self.inputs[0].value, np.ndarray):
             self.inputs[0].value = np.full(CONFIG['chunk_size'], 0)
 
     def set_properties(self, *args, **kwargs):

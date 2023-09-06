@@ -32,6 +32,7 @@ class Trigger(Object):
             if len(keys) != 1: raise TriggerException(f'invalid trigger type: {tag}')
             self.output_types.append(keys[0])
             self.add_output(IOType.BANG if keys[0] == 'BANG' else IOType.MESSAGE)
+        print(self.outputs)
 
     def bang(self, port=0):
         if port == 0:

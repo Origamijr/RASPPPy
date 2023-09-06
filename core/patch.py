@@ -32,10 +32,10 @@ class Patch(Object):
         module = import_dir(CONFIG['base_library'])
         for info in data['objects']:
             class_ = getattr(module, info['class'])
-            obj = class_()
+            obj = class_(**info['properties'])
             id_map[info['id']] = obj.id
             self.objects[obj.id] = obj
-            self.objects[obj.id].set_properties(**info['properties'])
+            #self.objects[obj.id].set_properties(**info['properties'])
 
         for obj, info in zip(self.objects.values(), data['objects']):
             for port, io in enumerate(info['outputs']):
@@ -78,23 +78,27 @@ if __name__ == "__main__":
     p = Patch()
     
     b  = p.add_object(Bang(position=(0,0)))
-    t  = p.add_object(Trigger('b', 'b', position=(0,50)))
+    t  = p.add_object(Trigger('b', 'b', 'b', position=(0,50)))
+    d = p.add_object(Delay(1000, position=(100,50)))
     n1 = p.add_object(Number(1, position=(0,100)))
     n2 = p.add_object(Number(2, position=(100,100)))
     a  = p.add_object(Add(position=(0,150)))
     pr = p.add_object(Print(position=(0,200)))
     
     b.wire(0, t, 0)
-    t.wire(0, n1, 0)
-    t.wire(1, n2, 0)
+    t.wire(2, d, 0)
+    t.wire(1, n1, 0)
+    t.wire(0, n2, 0)
+    d.wire(0, n1, 0)
     n1.wire(0, a, 0)
     n2.wire(0, a, 1)
     a.wire(0, pr, 0)
 
-    list(p.objects.values())[0].bang()
+    #list(p.objects.values())[0].bang()
     
     p.save('examples/add_example.json')
     p.load('examples/add_example.json')
     print(p)
     list(p.objects.values())[0].bang()
+    gevent.sleep(1.5)
     

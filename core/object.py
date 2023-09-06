@@ -228,6 +228,7 @@ class AudioIOObject(Object):
         super().process_signal()
 
 
+import gevent
 class AsyncObject(Object):
     """
     """
@@ -238,21 +239,12 @@ class AsyncObject(Object):
     def add_output(self, type: IOType):
         assert type != IOType.SIGNAL, "Async blocks cannot output a signal"
         super().add_output(type)
-    
-    def send(self):
-        for output in reversed(self.outputs):
-            if output.type == IOType.SIGNAL: continue
-            for wire in output.wires:
-                if output.type != IOType.BANG and wire.object.inputs[wire.port].type != IOType.BANG:
-                    wire.object.set_input(wire.port, output.value)
-                wire.object._bang(wire.port)
 
     def _bang(self, port=0):
-        self.bang(port=port)
+        gevent.spawn(self.bang, port=port)
 
-    def process_signal(self):
-        assert self.audio_input or self.audio_output, 'AudioIOObject not designated as audio IO'
-        super().process_signal()
+    def _process_signal(self):
+        gevent.spawn(self.process_signal)
 
 class Blank(Object):
     """

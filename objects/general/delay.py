@@ -1,8 +1,8 @@
 import gevent
 
-from core.object import Object, IOType
+from core.object import AsyncObject, IOType
 
-class Delay(Object):
+class Delay(AsyncObject):
     """
     """
 

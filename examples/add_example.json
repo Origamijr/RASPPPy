@@ -30,7 +30,7 @@
           0
         ],
         "args": [],
-        "text": "bang"
+        "text": "bang "
       }
     },
     {
@@ -51,7 +51,7 @@
         {
           "wires": [
             {
-              "id": 4,
+              "id": 6,
               "port": 0
             }
           ],
@@ -65,6 +65,15 @@
             }
           ],
           "type": "BANG"
+        },
+        {
+          "wires": [
+            {
+              "id": 4,
+              "port": 0
+            }
+          ],
+          "type": "BANG"
         }
       ],
       "properties": {
@@ -74,19 +83,64 @@
         ],
         "args": [
           "b",
+          "b",
           "b"
         ],
-        "text": "trigger b b"
+        "text": "trigger b b b"
       }
     },
     {
       "id": 4,
+      "class": "Delay",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 3,
+              "port": 2
+            }
+          ],
+          "type": "MESSAGE"
+        },
+        {
+          "wires": [],
+          "type": "MESSAGE"
+        }
+      ],
+      "outputs": [
+        {
+          "wires": [
+            {
+              "id": 5,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "properties": {
+        "position": [
+          100,
+          50
+        ],
+        "args": [
+          1000
+        ],
+        "text": "delay 1000"
+      }
+    },
+    {
+      "id": 5,
       "class": "Number",
       "inputs": [
         {
           "wires": [
             {
               "id": 3,
+              "port": 1
+            },
+            {
+              "id": 4,
               "port": 0
             }
           ],
@@ -97,7 +151,7 @@
         {
           "wires": [
             {
-              "id": 6,
+              "id": 7,
               "port": 0
             }
           ],
@@ -117,14 +171,14 @@
       }
     },
     {
-      "id": 5,
+      "id": 6,
       "class": "Number",
       "inputs": [
         {
           "wires": [
             {
               "id": 3,
-              "port": 1
+              "port": 0
             }
           ],
           "type": "MESSAGE"
@@ -134,7 +188,7 @@
         {
           "wires": [
             {
-              "id": 6,
+              "id": 7,
               "port": 1
             }
           ],
@@ -154,13 +208,13 @@
       }
     },
     {
-      "id": 6,
+      "id": 7,
       "class": "Add",
       "inputs": [
         {
           "wires": [
             {
-              "id": 4,
+              "id": 5,
               "port": 0
             }
           ],
@@ -169,7 +223,7 @@
         {
           "wires": [
             {
-              "id": 5,
+              "id": 6,
               "port": 0
             }
           ],
@@ -180,7 +234,7 @@
         {
           "wires": [
             {
-              "id": 7,
+              "id": 8,
               "port": 0
             }
           ],
@@ -194,17 +248,17 @@
           150
         ],
         "args": [],
-        "text": "add"
+        "text": "add "
       }
     },
     {
-      "id": 7,
+      "id": 8,
       "class": "Print",
       "inputs": [
         {
           "wires": [
             {
-              "id": 6,
+              "id": 7,
               "port": 0
             }
           ],
@@ -218,7 +272,7 @@
           200
         ],
         "args": [],
-        "text": "print"
+        "text": "print "
       }
     }
   ],
@@ -228,6 +282,6 @@
       0
     ],
     "args": [],
-    "text": "patch"
+    "text": "patch "
   }
 }

@@ -16,6 +16,7 @@ class Multiply_DSP(Object):
         self.set_properties(**self.properties)
         
     def _convert_input_to_signal(self):
+        
         if isinstance(self.inputs[1].value, Number):
             self.inputs[1].value = np.full(BUFSIZE, self.inputs[1].value)
         elif not isinstance(self.inputs[1].value, np.ndarray):
