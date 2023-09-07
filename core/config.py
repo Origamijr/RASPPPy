@@ -18,7 +18,7 @@ def reload():
     global _CONFIG
     _CONFIG = toml.load(_config_path)
 
-def config(keys=[]):
+def config(*keys):
     obj = _CONFIG
     for key in keys:
         obj = obj[key]

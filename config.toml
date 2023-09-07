@@ -6,3 +6,5 @@ analysis_lib = 'librosa'
 
 [files]
 base_library = 'objects'
+external_libraries = ['externals']
+model_dir = 'models'

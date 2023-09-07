@@ -1,12 +1,11 @@
 import numpy as np
-from asyncio import Queue
 
 from core.patch import Patch
 from core.object import Blank, Blank_DSP, IOType, AudioIOObject
 from core.audio_server import AudioServer
 from core.logger import log
 from core.config import config
-CONFIG = config(['audio'])
+CONFIG = config('audio')
 
 class Runtime():
     patches: dict[int,Patch] = dict()
@@ -120,21 +119,28 @@ if __name__ == "__main__":
     
     p = Patch()
 
-    adc = p.add_object(ADC_DSP(position=(0,0)))
-    dac = p.add_object(DAC_DSP(position=(0,150)))
-    ph  = p.add_object(Phasor_DSP(660, position=(100,0)))
-    g   = p.add_object(Multiply_DSP(0.01, position=(100,50)))
-    l   = p.add_object(Multiply_DSP(0.9, position=(0,100)))
+    adc = p.add_object(ADC_DSP(position=(100,0)))
+    ph  = p.add_object(Phasor_DSP(660, position=(200,0)))
+    g   = p.add_object(Multiply_DSP(0.01, position=(200,50)))
+    vad = p.add_object(VAD_DSP(position=(0,50)))
+    whs = p.add_object(Whisper(position=(0,100)))
+    l   = p.add_object(Multiply_DSP(0.9, position=(100,100)))
+    dac = p.add_object(DAC_DSP(position=(100,150)))
+    pr  = p.add_object(Print(position=(0,150)))
     
     adc.wire(0, l, 0)
+    adc.wire(0, vad, 0)
     ph.wire(0, g, 0)
     g.wire(0, l, 0)
     l.wire(0, dac, 0)
     l.wire(0, dac, 1)
-    
+    vad.wire(1, pr, 0)
+    vad.wire(0, whs, 0)
+    whs.wire(0, pr, 0)
+
     p.save('examples/phasor_loopback.json')
     p = Runtime.open_patch('examples/phasor_loopback.json')
-    print(Runtime.compute_dsp_graph())
+    print(Runtime.compute_dsp_graph(), Runtime.dsp_order)
     Runtime.start_dsp()
-    time.sleep(5)
+    time.sleep(10)
     Runtime.stop_dsp()

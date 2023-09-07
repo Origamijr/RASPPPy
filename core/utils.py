@@ -3,10 +3,11 @@ import importlib.util
 import inspect
 import os
 import types
+from core.logger import log
 
-def import_dir(directory, verbose=False):
+def import_dir(directory, verbose=False, module=None):
     # From ChatGPT
-    module = types.ModuleType("my_module")
+    module = module if module else types.ModuleType("my_module")
     for file in glob.glob(f"{directory}/**/*.py", recursive=True):
     # Extract the module name from the file path
         module_name = os.path.splitext(os.path.basename(file))[0]
@@ -20,13 +21,26 @@ def import_dir(directory, verbose=False):
         for attribute_name in dir(module_file):
             # Get the attribute from the module
             attribute = getattr(module_file, attribute_name)
-
+            
             # Check if the attribute is a class
             if inspect.isclass(attribute) and attribute.__module__ == module_file.__name__:
+                if attribute_name in dir(module):
+                    log(f'WARNING: Duplicate object class {attribute_name} ignored')
+                    continue
+
                 # Add the class to the new module
                 setattr(module, attribute_name, attribute)
                 if verbose: print(attribute_name)
     return module
+
+def filter_kwargs(kwargs, exclude=None, adapt_f=None):
+    if adapt_f is not None:
+        sig = inspect.signature(adapt_f)
+        filter_keys = [param.name for param in sig.parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
+        kwargs = {filter_key: kwargs[filter_key] for filter_key in filter_keys if filter_key in kwargs}
+    if exclude is not None:
+        kwargs = {key: kwargs[key] for key in kwargs if key not in exclude}
+    return kwargs
 
 def singleton(cls):
     instances = {}

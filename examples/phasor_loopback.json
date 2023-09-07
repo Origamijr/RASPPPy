@@ -12,7 +12,11 @@
         {
           "wires": [
             {
-              "id": 6,
+              "id": 7,
+              "port": 0
+            },
+            {
+              "id": 5,
               "port": 0
             }
           ],
@@ -29,7 +33,7 @@
           1
         ],
         "position": [
-          0,
+          100,
           0
         ],
         "args": [],
@@ -38,43 +42,6 @@
     },
     {
       "id": 3,
-      "class": "DAC_DSP",
-      "inputs": [
-        {
-          "wires": [
-            {
-              "id": 6,
-              "port": 0
-            }
-          ],
-          "type": "SIGNAL"
-        },
-        {
-          "wires": [
-            {
-              "id": 6,
-              "port": 0
-            }
-          ],
-          "type": "SIGNAL"
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "channels": [
-          0,
-          1
-        ],
-        "position": [
-          0,
-          150
-        ],
-        "args": [],
-        "text": "dac~ "
-      }
-    },
-    {
-      "id": 4,
       "class": "Phasor_DSP",
       "inputs": [
         {
@@ -86,7 +53,7 @@
         {
           "wires": [
             {
-              "id": 5,
+              "id": 4,
               "port": 0
             }
           ],
@@ -95,7 +62,7 @@
       ],
       "properties": {
         "position": [
-          100,
+          200,
           0
         ],
         "args": [
@@ -105,11 +72,138 @@
       }
     },
     {
-      "id": 5,
+      "id": 4,
       "class": "Multiply_DSP",
       "inputs": [
         {
           "wires": [
+            {
+              "id": 3,
+              "port": 0
+            }
+          ],
+          "type": "SIGNAL"
+        },
+        {
+          "wires": [],
+          "type": "ANYTHING"
+        }
+      ],
+      "outputs": [
+        {
+          "wires": [
+            {
+              "id": 7,
+              "port": 0
+            }
+          ],
+          "type": "SIGNAL"
+        }
+      ],
+      "properties": {
+        "position": [
+          200,
+          50
+        ],
+        "args": [
+          0.01
+        ],
+        "text": "multiply~ 0.01"
+      }
+    },
+    {
+      "id": 5,
+      "class": "VAD_DSP",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 2,
+              "port": 0
+            }
+          ],
+          "type": "SIGNAL"
+        }
+      ],
+      "outputs": [
+        {
+          "wires": [
+            {
+              "id": 6,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        },
+        {
+          "wires": [
+            {
+              "id": 9,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "properties": {
+        "speech_threshold": 0.5,
+        "silence_threshold": 0.35,
+        "min_speech_duration": 0.1,
+        "min_silence_duration": 0.3,
+        "position": [
+          0,
+          50
+        ],
+        "args": [],
+        "text": "vad~ "
+      }
+    },
+    {
+      "id": 6,
+      "class": "Whisper",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 5,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "outputs": [
+        {
+          "wires": [
+            {
+              "id": 9,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "properties": {
+        "model_name": "base.en",
+        "cuda": true,
+        "position": [
+          0,
+          100
+        ],
+        "args": [],
+        "text": "whisper "
+      }
+    },
+    {
+      "id": 7,
+      "class": "Multiply_DSP",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 2,
+              "port": 0
+            },
             {
               "id": 4,
               "port": 0
@@ -126,55 +220,11 @@
         {
           "wires": [
             {
-              "id": 6,
-              "port": 0
-            }
-          ],
-          "type": "SIGNAL"
-        }
-      ],
-      "properties": {
-        "position": [
-          100,
-          50
-        ],
-        "args": [
-          0.01
-        ],
-        "text": "multiply~ 0.01"
-      }
-    },
-    {
-      "id": 6,
-      "class": "Multiply_DSP",
-      "inputs": [
-        {
-          "wires": [
-            {
-              "id": 2,
+              "id": 8,
               "port": 0
             },
             {
-              "id": 5,
-              "port": 0
-            }
-          ],
-          "type": "SIGNAL"
-        },
-        {
-          "wires": [],
-          "type": "ANYTHING"
-        }
-      ],
-      "outputs": [
-        {
-          "wires": [
-            {
-              "id": 3,
-              "port": 0
-            },
-            {
-              "id": 3,
+              "id": 8,
               "port": 1
             }
           ],
@@ -183,13 +233,78 @@
       ],
       "properties": {
         "position": [
-          0,
+          100,
           100
         ],
         "args": [
           0.9
         ],
         "text": "multiply~ 0.9"
+      }
+    },
+    {
+      "id": 8,
+      "class": "DAC_DSP",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 7,
+              "port": 0
+            }
+          ],
+          "type": "SIGNAL"
+        },
+        {
+          "wires": [
+            {
+              "id": 7,
+              "port": 0
+            }
+          ],
+          "type": "SIGNAL"
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "channels": [
+          0,
+          1
+        ],
+        "position": [
+          100,
+          150
+        ],
+        "args": [],
+        "text": "dac~ "
+      }
+    },
+    {
+      "id": 9,
+      "class": "Print",
+      "inputs": [
+        {
+          "wires": [
+            {
+              "id": 5,
+              "port": 1
+            },
+            {
+              "id": 6,
+              "port": 0
+            }
+          ],
+          "type": "MESSAGE"
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "position": [
+          0,
+          150
+        ],
+        "args": [],
+        "text": "print "
       }
     }
   ],

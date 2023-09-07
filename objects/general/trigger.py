@@ -1,11 +1,6 @@
 import numpy as np
 
-from core.object import Object, IOType
-
-class TriggerException(Exception):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+from core.object import Object, IOType, RuntimeException
 
 class Trigger(Object):
     """
@@ -29,7 +24,7 @@ class Trigger(Object):
         if len(args) == 0: args = ['a', 'a']
         for tag in args:
             keys = [key for key, aliases in Trigger.TRIGGER_OUTPUTS.items() if tag in aliases]
-            if len(keys) != 1: raise TriggerException(f'invalid trigger type: {tag}')
+            if len(keys) != 1: raise RuntimeException(f'invalid trigger type: {tag}')
             self.output_types.append(keys[0])
             self.add_output(IOType.BANG if keys[0] == 'BANG' else IOType.MESSAGE)
         print(self.outputs)

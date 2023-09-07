@@ -2,9 +2,23 @@ import eel
 import os
 import numpy as np
 
+from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
+import warnings
+
+warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
+warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+
 from core.runtime import Runtime
+from core.config import config as conf
+
+from gevent import monkey
+monkey.patch_all()
 
 eel.init('client', allowed_extensions=['.js', '.html'])
+
+@eel.expose
+def config(*args):
+    conf(*args)
 
 @eel.expose
 def open_patch(filename):

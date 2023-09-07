@@ -5,7 +5,7 @@ import sounddevice as sd
 
 from core.utils import MovingAverage
 from core.config import config
-CONFIG = config(['audio'])
+CONFIG = config('audio')
 SAMPLE_RATE = CONFIG['sample_rate']
 BUFSIZE = CONFIG['chunk_size']
 
@@ -35,17 +35,26 @@ class AudioServer:
     input_device, output_device = get_default_devices()
     
     @staticmethod
-    def callback(indata, outdata, frames, time, status: sd.CallbackFlags):
+    def callback(indata, outdata, frames, timing, status: sd.CallbackFlags):
+        start = time.perf_counter()
         if AudioServer.last_frame_time:
-            AudioServer.last_frame_duration = time.currentTime - AudioServer.last_frame_time
+            AudioServer.last_frame_duration = timing.currentTime - AudioServer.last_frame_time
             AudioServer.frame_duration.add(AudioServer.last_frame_duration)
             AudioServer.frame_duration_stability.add((AudioServer.frame_duration.value - AudioServer.last_frame_duration) ** 2)
-        AudioServer.last_frame_time = time.currentTime
-        #print(indata[:,0].shape, outdata.shape, frames, AudioServer.frame_duration.value, AudioServer.frame_duration_stability.value, status)
+        AudioServer.last_frame_time = timing.currentTime
+
+        # capture the outputs
         out = np.zeros(outdata.shape)
         for fn in AudioServer.callbacks:
             out += fn(indata)[:,:out.shape[1]]
         outdata[:] = out
+
+        # Audio processing load check
+        elapsed_time = time.perf_counter() - start
+        if AudioServer.frame_duration.value > 0: 
+            dsp_load = elapsed_time / AudioServer.frame_duration.value
+            if dsp_load > 0.5:
+                print(f'WARNING: High DSP load {dsp_load}')
 
     @staticmethod
     def run_server():

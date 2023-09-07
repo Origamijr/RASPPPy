@@ -1,5 +1,5 @@
 from core.config import config
-CONFIG = config(['audio'])
+CONFIG = config('audio')
 
 match CONFIG['analysis_lib']:
     case 'librosa':

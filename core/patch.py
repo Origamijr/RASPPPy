@@ -5,7 +5,7 @@ from core.object import Object, WireException
 from core.utils import import_dir
 from core.config import config
 from core.logger import log
-CONFIG = config(['files'])
+CONFIG = config('files')
 
 class Patch(Object):
     def __init__(self, filename=None):

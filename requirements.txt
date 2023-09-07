@@ -2,3 +2,4 @@
 sounddevice
 toml
 git+https://github.com/huggingface/transformers
+openai-whisper

@@ -67,6 +67,8 @@ function createWindow() {
         {
           label: 'Delete (invisible)',
           accelerator: 'Delete',
+          visible: false,
+          acceleratorWorksWhenHidden: true,
           click() {
             mainWindow.webContents.send('DELETE_OBJECT', {})
           }

@@ -4,7 +4,7 @@ from numbers import Number
 from core.object import Object, IOType
 from core.runtime import Runtime
 from core.config import config
-CONFIG = config(['audio'])
+CONFIG = config('audio')
 
 
 class Phasor_DSP(Object):

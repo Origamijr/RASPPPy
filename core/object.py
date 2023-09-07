@@ -21,6 +21,10 @@ class PropertyException(Exception):
     def __init__(self, obj: 'Object', property, msg='', *args, **kwargs):
         super().__init__(f'Object {obj.id} of type {obj.__class__.__name__} invalid property {property}: {msg}', *args, **kwargs)
 
+class RuntimeException(Exception):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 class Object:
     id_iter = itertools.count(start = 1)
 
@@ -53,6 +57,7 @@ class Object:
         self.dsp = False
         self.audio_input = False
         self.audio_output = False
+        self.ready = True
 
 
     def serialize(self):
@@ -114,12 +119,12 @@ class Object:
         args = [infer_string_type(a) for a in text.split(' ')[1:]]
         self.set_properties(*args, text=text)
 
-    def add_input(self, type: IOType, default=None):
+    def add_input(self, type: IOType=IOType.MESSAGE, default=None):
         self.inputs.append(Object.ObjectIO(type))
         if default: self.inputs[-1].value = default
         self._check_signal_port()
 
-    def add_output(self, type: IOType):
+    def add_output(self, type: IOType=IOType.MESSAGE):
         assert type != IOType.ANYTHING, 'Output type must be specific'
         self.outputs.append(Object.ObjectIO(type))
         self._check_signal_port()
@@ -170,14 +175,15 @@ class Object:
         other.inputs[self.outputs[out_port].port].wires = [wire for wire in other.inputs[in_port].wires if wire.object.id != self.id or wire.port != out_port]
         self.outputs[out_port].wires = [wire for wire in self.outputs[out_port].wires if wire.object.id != id or wire.port != in_port]
 
-    def set_input(self, input, value):
+    def set_input(self, port, value):
         """
         Sets the value stored in an input port
         """
-        self.inputs[input].value = value
+        self.inputs[port].value = value
 
-    def send(self):
-        for output in reversed(self.outputs):
+    def send(self, port=None):
+        for i, output in reversed(list(enumerate(self.outputs))):
+            if port is not None and i != port: continue
             if output.type == IOType.SIGNAL: continue
             for wire in output.wires:
                 if output.type != IOType.BANG and wire.object.inputs[wire.port].type != IOType.BANG:
@@ -221,7 +227,7 @@ class AudioIOObject(Object):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.audio_io_buffer: np.ndarray = np.zeros(config(['audio', 'chunk_size']))
+        self.audio_io_buffer: np.ndarray = np.zeros(config('audio', 'chunk_size'))
 
     def process_signal(self):
         assert self.audio_input or self.audio_output, 'AudioIOObject not designated as audio IO'
@@ -229,6 +235,8 @@ class AudioIOObject(Object):
 
 
 import gevent
+import time
+from threading import Thread
 class AsyncObject(Object):
     """
     """
@@ -236,15 +244,30 @@ class AsyncObject(Object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def add_output(self, type: IOType):
+    def add_output(self, type: IOType=IOType.MESSAGE):
         assert type != IOType.SIGNAL, "Async blocks cannot output a signal"
         super().add_output(type)
 
+    def _spawn(self, f, *args, **kwargs):
+        t = Thread(target=f, args=args, kwargs=kwargs)
+        t.start()
+        return t
+
+    def _sleep(self, *args, **kwargs):
+        return time.sleep(*args, **kwargs)
+
     def _bang(self, port=0):
-        gevent.spawn(self.bang, port=port)
+        print('hi')
+        def f():
+            print('bye')
+            time.sleep(1)
+            print('bye')
+        self._spawn(f)
+        self._spawn(self.bang, port=port)
 
     def _process_signal(self):
-        gevent.spawn(self.process_signal)
+        assert self.dsp
+        self._spawn(self.process_signal)
 
 class Blank(Object):
     """
