@@ -11,8 +11,7 @@ warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 from core.runtime import Runtime
 from core.config import config as conf
 
-from gevent import monkey
-monkey.patch_all()
+from threading import Thread
 
 eel.init('client', allowed_extensions=['.js', '.html'])
 

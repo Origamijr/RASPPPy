@@ -142,5 +142,5 @@ if __name__ == "__main__":
     p = Runtime.open_patch('examples/phasor_loopback.json')
     print(Runtime.compute_dsp_graph(), Runtime.dsp_order)
     Runtime.start_dsp()
-    time.sleep(10)
+    time.sleep(20)
     Runtime.stop_dsp()

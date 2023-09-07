@@ -234,7 +234,6 @@ class AudioIOObject(Object):
         super().process_signal()
 
 
-import gevent
 import time
 from threading import Thread
 class AsyncObject(Object):
@@ -257,12 +256,6 @@ class AsyncObject(Object):
         return time.sleep(*args, **kwargs)
 
     def _bang(self, port=0):
-        print('hi')
-        def f():
-            print('bye')
-            time.sleep(1)
-            print('bye')
-        self._spawn(f)
         self._spawn(self.bang, port=port)
 
     def _process_signal(self):
