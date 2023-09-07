@@ -7,6 +7,23 @@ from core.config import config
 from core.audio_server import BUFSIZE
 from core.utils import infer_string_type
 
+class ObjectMetaAliasable(type):
+    def __init__(cls, name, bases, attrs):
+        if "_aliases" in attrs:
+            cls._aliases = [name.lower().replace('_dsp', '~')] + cls._aliases
+        else:
+            cls._aliases = [name.lower().replace('_dsp', '~')]
+
+def object_alias(*aliases):
+    assert all([isinstance(alias, str) for alias in aliases])
+    def decorator(cls):
+        if "_aliases" in cls.__dict__:
+            cls._aliases += list(aliases)
+        else:
+            cls._aliases = list(aliases)
+        return cls
+    return decorator
+
 class IOType(Enum):
     BANG = 0
     MESSAGE = auto()
@@ -14,19 +31,20 @@ class IOType(Enum):
     ANYTHING = auto()
     
 class WireException(Exception):
-    def __init__(self, obj: 'Object', output, msg='', *args, **kwargs):
+    def __init__(self, obj: 'RASPPPyObject', output, msg='', *args, **kwargs):
         super().__init__(f'Invalid output {output} for object {obj.__class__.__name__} id {obj.id}: {msg}', *args, **kwargs)
 
 class PropertyException(Exception):
-    def __init__(self, obj: 'Object', property, msg='', *args, **kwargs):
+    def __init__(self, obj: 'RASPPPyObject', property, msg='', *args, **kwargs):
         super().__init__(f'Object {obj.id} of type {obj.__class__.__name__} invalid property {property}: {msg}', *args, **kwargs)
 
 class RuntimeException(Exception):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-class Object:
+class RASPPPyObject(metaclass=ObjectMetaAliasable):
     id_iter = itertools.count(start = 1)
+    _aliases = []
 
     class ObjectIO:
         """
@@ -34,17 +52,17 @@ class Object:
         """
         @dataclass
         class WireInfo: 
-            object: 'Object'
+            object: 'RASPPPyObject'
             port: int
         def __init__(self, type: IOType):
             self.type: IOType = type
-            self.wires: list[Object.ObjectIO.WireInfo] = []
+            self.wires: list[RASPPPyObject.ObjectIO.WireInfo] = []
             self.value = None
 
     def __init__(self, *args, **kwargs):
-        self.id = next(Object.id_iter)
-        self.inputs: list[Object.ObjectIO] = []
-        self.outputs: list[Object.ObjectIO]  = []
+        self.id = next(RASPPPyObject.id_iter)
+        self.inputs: list[RASPPPyObject.ObjectIO] = []
+        self.outputs: list[RASPPPyObject.ObjectIO]  = []
         
         # Read arguments into the object properties
         self.properties = kwargs if kwargs != ... else dict()
@@ -120,13 +138,13 @@ class Object:
         self.set_properties(*args, text=text)
 
     def add_input(self, type: IOType=IOType.MESSAGE, default=None):
-        self.inputs.append(Object.ObjectIO(type))
+        self.inputs.append(RASPPPyObject.ObjectIO(type))
         if default: self.inputs[-1].value = default
         self._check_signal_port()
 
     def add_output(self, type: IOType=IOType.MESSAGE):
         assert type != IOType.ANYTHING, 'Output type must be specific'
-        self.outputs.append(Object.ObjectIO(type))
+        self.outputs.append(RASPPPyObject.ObjectIO(type))
         self._check_signal_port()
 
     def remove_input(self):
@@ -150,7 +168,7 @@ class Object:
                    or any([(IOType.SIGNAL in input.type if isinstance(input.type, list) else input.type == IOType.SIGNAL) for input in self.inputs]) \
                    or any([(output.type == IOType.SIGNAL) for output in self.outputs])
 
-    def wire(self, output, other: 'Object', other_input):
+    def wire(self, output, other: 'RASPPPyObject', other_input):
         """
         Connects output of this object to the input of another
         """
@@ -162,8 +180,8 @@ class Object:
         if type1 != IOType.BANG and type2 != IOType.ANYTHING and type1 != type2:
             raise WireException(self, output, f'incompatible data types {type1} and {type2}')
         
-        self.outputs[output].wires.append(Object.ObjectIO.WireInfo(other, other_input))
-        other.inputs[other_input].wires.append(Object.ObjectIO.WireInfo(self, output))
+        self.outputs[output].wires.append(RASPPPyObject.ObjectIO.WireInfo(other, other_input))
+        other.inputs[other_input].wires.append(RASPPPyObject.ObjectIO.WireInfo(self, output))
     
     def disconnect(self, out_port, id, in_port):
         """
@@ -221,7 +239,7 @@ class Object:
                     break
 
 
-class AudioIOObject(Object):
+class AudioIOObject(RASPPPyObject):
     """
     """
 
@@ -236,7 +254,7 @@ class AudioIOObject(Object):
 
 import time
 from threading import Thread
-class AsyncObject(Object):
+class AsyncObject(RASPPPyObject):
     """
     """
 
@@ -262,7 +280,7 @@ class AsyncObject(Object):
         assert self.dsp
         self._spawn(self.process_signal)
 
-class Blank(Object):
+class Blank(RASPPPyObject):
     """
     Simple object that propogates the input to the output
     """
@@ -276,7 +294,7 @@ class Blank(Object):
         self.outputs[0].value = self.inputs[0].value
         self.send()
 
-class Blank_DSP(Object):
+class Blank_DSP(RASPPPyObject):
     """
     Simple object that propogates the input to the output
     """
@@ -291,7 +309,7 @@ class Blank_DSP(Object):
 
 
 if __name__ == "__main__":
-    o = Object()
+    o = RASPPPyObject()
     o.set_properties({'a': 1})
     print(o)
     o.set_properties({'a': 2})

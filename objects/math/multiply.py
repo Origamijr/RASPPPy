@@ -1,6 +1,6 @@
-from core.object import Object, IOType
+from core.object import RASPPPyObject, IOType
 
-class Multiply(Object):
+class Multiply(RASPPPyObject):
     """
     """
 

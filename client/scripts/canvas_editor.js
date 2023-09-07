@@ -17,11 +17,11 @@ window.addEventListener('resize', function() {
 let curr_collision = null
 let curr_drag_offset = null
 function get_collision(patch, x, y) {
+    let collision = NO_COLLISION
     if (patch) {
-        curr_collision = patch.mouse_collision(x, y)
-        if (curr_collision[0] != 0) return
+        collision = patch.mouse_collision(x, y)
     }
-    curr_collision = NO_COLLISION
+    return collision
 }
 
 canvas.addEventListener('mousedown', function (event) {
@@ -41,6 +41,8 @@ canvas.addEventListener('mousedown', function (event) {
             break
         case CollisionType.Output:
             curr_patch.dangling_wire = {
+                src_id: curr_collision.object.id,
+                src_port: curr_collision.port,
                 src: curr_collision.object.outputs[curr_collision.port].location,
                 dest: new Vec2(mouseX, mouseY),
                 width: curr_collision.object.outputs[curr_collision.port].type == 'MESSAGE' ? 1 : 2,
@@ -88,7 +90,7 @@ canvas.addEventListener('mousemove', function (event) {
 
     } else if (curr_patch && curr_patch.dangling_wire) {
         curr_patch.dangling_wire.dest.set(mouseX, mouseY)
-        get_collision(curr_patch, mouseX, mouseY)
+        curr_collision = get_collision(curr_patch, mouseX, mouseY)
         if (curr_collision.type == CollisionType.Input) {
             curr_patch.dangling_wire.dest_id = curr_collision.object.id
             curr_patch.dangling_wire.dest_port = curr_collision.port
@@ -98,7 +100,7 @@ canvas.addEventListener('mousemove', function (event) {
         }
 
     } else {
-        get_collision(curr_patch, mouseX, mouseY)
+        curr_collision = get_collision(curr_patch, mouseX, mouseY)
         
         switch (curr_collision.type) {
             case CollisionType.Object:
@@ -123,12 +125,6 @@ canvas.addEventListener('mouseout', function (event) {
     //console.log(event);
 });
 
-canvas.addEventListener('click', function (event) {
-    event.preventDefault()
-    //console.log('click');
-    //console.log(event);
-});
-
 canvas.addEventListener('dblclick', function (event) {
     event.preventDefault()
     //console.log('dblclick');
@@ -142,8 +138,8 @@ function render(ctx) {
 }
 
 // main update function
-function update(dt, context) {
-    if (curr_patch) curr_patch.update(dt, context)
+function update(dt) {
+    if (curr_patch) curr_patch.update(dt)
 }
 
 let start, previousTimeStamp;
@@ -154,7 +150,7 @@ function animate(timeStamp) {
     const elapsed = timeStamp - start;
 
     if (previousTimeStamp !== timeStamp) {
-        update(elapsed, context)
+        update(elapsed)
         render(context)
     }
 

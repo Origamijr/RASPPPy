@@ -1,8 +1,8 @@
 import numpy as np
 
-from core.object import Object, IOType, RuntimeException
+from core.object import RASPPPyObject, IOType, RuntimeException
 
-class Trigger(Object):
+class Trigger(RASPPPyObject):
     """
     """
     TRIGGER_OUTPUTS = {

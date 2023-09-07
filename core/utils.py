@@ -3,7 +3,9 @@ import importlib.util
 import inspect
 import os
 import types
+
 from core.logger import log
+import core.object as object
 
 def import_dir(directory, verbose=False, module=None):
     # From ChatGPT
@@ -23,7 +25,9 @@ def import_dir(directory, verbose=False, module=None):
             attribute = getattr(module_file, attribute_name)
             
             # Check if the attribute is a class
-            if inspect.isclass(attribute) and attribute.__module__ == module_file.__name__:
+            if inspect.isclass(attribute) \
+                    and attribute.__module__ == module_file.__name__ \
+                    and issubclass(attribute, object.RASPPPyObject):
                 if attribute_name in dir(module):
                     log(f'WARNING: Duplicate object class {attribute_name} ignored')
                     continue

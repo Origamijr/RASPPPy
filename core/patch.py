@@ -1,20 +1,20 @@
 import json
 from collections import OrderedDict
 
-from core.object import Object, WireException
+from core.object import RASPPPyObject, WireException
 from core.utils import import_dir
 from core.config import config
 from core.logger import log
 CONFIG = config('files')
 
-class Patch(Object):
+class Patch(RASPPPyObject):
     def __init__(self, filename=None):
         super().__init__()
         self.name = 'Untitled'
-        self.objects: OrderedDict[int, Object] = OrderedDict()
+        self.objects: OrderedDict[int, RASPPPyObject] = OrderedDict()
         if filename is not None: self.load(filename)
 
-    def add_object(self, obj: Object):
+    def add_object(self, obj: RASPPPyObject):
         self.objects[obj.id] = obj
         return obj
 

@@ -10,7 +10,9 @@ class RASPPPyObject {
         this.text = ''
         this.inputs = []
         this.outputs = []
+        this.properties = {}
         this.ctx = null
+        this.display_mode = false
         if (obj) {
             this.load(obj)
         }
@@ -20,24 +22,29 @@ class RASPPPyObject {
         this.id = obj.id
         this.inputs = JSON.parse(JSON.stringify(obj.inputs))
         this.outputs = JSON.parse(JSON.stringify(obj.outputs))
-        this.text = obj.properties.text
-        this.x = obj.properties.position[0]
-        this.y = obj.properties.position[1]
+        this.properties = JSON.parse(JSON.stringify(obj.properties))
+        this.text = this.properties.text
+        this.x = this.properties.position[0]
+        this.y = this.properties.position[1]
     }
 
     get_collision(x, y) {
-        if (x < this.x || x > this.x+this.width || y < this.y || y > this.y+this.height) return NO_COLLISION
+        if (x < this.x 
+            || x > this.x+this.width 
+            || y < this.y 
+            || y > this.y+this.height) return NO_COLLISION
+
         for (let i=0; i < this.inputs.length; i++) {
             if (x < this.x+i*this.input_spacing) continue
             if (x > this.x+i*this.input_spacing+this.port_width) continue
             if (y > this.y+5) continue
-            return {type: CollisionType.Input, port: i}
+            return {type: CollisionType.Input, object: this, port: i}
         }
         for (let i=0; i < this.outputs.length; i++) {
             if (x < this.x+i*this.output_spacing) continue
             if (x > this.x+i*this.output_spacing+this.port_width) continue
             if (y < this.y+this.height-5) continue
-            return {type: CollisionType.Output, port: i}
+            return {type: CollisionType.Output, object: this, port: i}
         }
         return {type: CollisionType.Object, object: this}
     }
@@ -105,7 +112,7 @@ class RASPPPyObject {
             }
             if (this.outputs.length > 1) {
                 ctx.fillRect(this.x+this.width-this.port_width, this.y+this.height-3, this.port_width, 3)
-                this.outputs[this.outputs.length-1].location = new Vec2(this.x+this.width+this.port_width/2, this.y+this.height-1)
+                this.outputs[this.outputs.length-1].location = new Vec2(this.x+this.width-this.port_width/2, this.y+this.height-1)
             }
 
             // Render box
@@ -113,7 +120,7 @@ class RASPPPyObject {
         }
     }
 
-    update(dt, ctx) {
+    update(dt) {
         // Nothing yet
     }
 }
@@ -226,6 +233,7 @@ const CollisionType = {
     Object: 1,
     Input: 2,
     Output: 3,
-    Wire: 4
+    Wire: 4,
+    Callback: 5
 }
 const NO_COLLISION = {type: CollisionType.None}

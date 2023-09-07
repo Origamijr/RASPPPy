@@ -1,7 +1,7 @@
-from core.object import Object, IOType
+from core.object import RASPPPyObject, IOType
 from core.logger import log
 
-class Print(Object):
+class Print(RASPPPyObject):
     """
     """
 

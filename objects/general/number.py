@@ -1,8 +1,8 @@
 from numbers import Number
 
-from core.object import Object, IOType
+from core.object import RASPPPyObject, IOType
 
-class Number(Object):
+class Number(RASPPPyObject):
     """
     Stores a number
 

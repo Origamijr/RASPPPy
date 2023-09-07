@@ -1,13 +1,13 @@
 import numpy as np
 from numbers import Number
 
-from core.object import Object, IOType
+from core.object import RASPPPyObject, IOType
 from core.runtime import Runtime
 from core.config import config
 CONFIG = config('audio')
 
 
-class Phasor_DSP(Object):
+class Phasor_DSP(RASPPPyObject):
     """
     """
 

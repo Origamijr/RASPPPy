@@ -22,7 +22,7 @@ Installation is still very primitive, and I'll get that working in the future.
 ```
 python main.py
 ```
-the `config.toml` should be in the same directory, but can otherwise be specified with the --config flag
+the `config.toml` should be in the same directory level
 
 ## Building
 
@@ -34,16 +34,18 @@ Admitedly a mess, will write up later. Not completely standalone yet, need to fi
 - saving and loading patches
 - some basic math and dsp
 - audio input/output
+- some advanced objects for VAD and ASR
 - Basic GUI to play patches
 
 ### Planned for near future
-- Built in models for VAD, ASR, TTS, and VC (also maybe Llama as an extension)
+- Dynamically loading objects from a specified directory for easy extension
+- Built in models for TTS, and VC
 - Actual GUI editor
 - Replicating most of the Pd library of basic blocks
 - Refining installation/execution process
+- Building into a standalone application
 
 ### Planned for far future
 - Faster dsp backend (may or may not be possible)
 - Pytorch library of objects for possibly training within the interface
-- Wider Multimedia capabilities (e.g. Video using OpenCV)
-- Building into a standalone application
+- Wider Multimedia capabilities (e.g. Video using OpenCV, WebGL or Live2D would be cool too)

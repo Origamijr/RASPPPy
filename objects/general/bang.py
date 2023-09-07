@@ -1,7 +1,8 @@
 
-from core.object import Object, IOType
+from core.object import RASPPPyObject, IOType, object_alias
 
-class Bang(Object):
+@object_alias('b')
+class Bang(RASPPPyObject):
     """
     """
     def __init__(self, *args, **kwargs):

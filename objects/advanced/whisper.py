@@ -19,7 +19,6 @@ class Whisper(AsyncObject):
 
         self.ready = False
         self._spawn(self._get_model)
-        print('trying...')
         
     def _get_model(self):
         path = os.path.join(config('files', 'model_dir'), 'whisper')
@@ -27,20 +26,17 @@ class Whisper(AsyncObject):
         if not os.path.exists(path):
             os.makedirs(path)
         if not os.path.exists(os.path.join(path, file+'.pt')):
-            print("downloading ASR model...")
             self.model = whisper.load_model(file, download_root=path)
         else:
             self.model = whisper.load_model(os.path.join(path, file + '.pt'))
         self.ready = True
-        print('done')
 
     def bang(self, port=0):
-        print('hi')
         if not self.ready: return
         if not isinstance(self.inputs[0].value, np.ndarray): return
         text = self.model.transcribe(self.inputs[0].value, fp16=(self.properties['cuda'] and torch.cuda.is_available()))['text'].strip()
-        print(f'whisper: {text}')
         self.outputs[0].value = text
+        self.send()
 
 if __name__ == "__main__":
     import gevent
