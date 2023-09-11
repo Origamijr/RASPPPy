@@ -17,7 +17,7 @@ def import_dir(directory, verbose=False, module=None):
     # From ChatGPT
     module = module if module else types.ModuleType("my_module")
     for file in glob.glob(f"{directory}/**/*.py", recursive=True):
-    # Extract the module name from the file path
+        # Extract the module name from the file path
         module_name = os.path.splitext(os.path.basename(file))[0]
 
         # Import the module dynamically
@@ -44,7 +44,7 @@ def import_dir(directory, verbose=False, module=None):
     return module
 
 def load_modules(verbose=False):
-    global MODULE
+    global MODULE, ALIASES
     # Import modules 
     MODULE = import_dir(config('files', 'base_library'), verbose=verbose)
     for external_dir in config('files', 'external_libraries'):
@@ -60,9 +60,7 @@ def load_modules(verbose=False):
 
     for alias, objs in ALIASES.items():
         if len(objs) > 1:
-            print(f'{alias} aliases multiple objects, using {objs[0]}')
-            objs = [objs[0]]
-    print(MODULE.__dir__())
+            log(f'{alias} aliases multiple objects, using {objs[0]}')
+        ALIASES[alias] = objs[0]
 
-load_modules(verbose=True)
-print(MODULE.__dir__())
+load_modules(verbose=False)
