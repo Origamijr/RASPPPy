@@ -9,18 +9,17 @@ class Add(RASPPPyObject):
         self.add_input(IOType.MESSAGE, default=0)
         self.add_input(IOType.MESSAGE, default=0)
         self.add_output(IOType.MESSAGE)
-        
-        if len(self.properties['args']) >= 1:
-            value = self.properties['args'][0]
+        self.properties = {'value': 0} | self.properties
+
+    def on_property_change(self, *args, **kwargs):
+        if len(args) >= 1:
+            value = args[0]
             try:
                 value = int(value)
             except ValueError:
                 value = float(value)
             self.properties['value'] = value
-        self.properties = {'value': 0} | self.properties
-
-        self.inputs[0].value = 0
-        self.inputs[1].value = self.properties['value']
+            self.inputs[1].value = self.properties['value']
 
     def bang(self, port=0):
         if port == 0:

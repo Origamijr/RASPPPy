@@ -4,15 +4,29 @@ from enum import Enum, auto
 from dataclasses import dataclass
 
 from core.config import config
-from core.audio_server import BUFSIZE
 from core.utils import infer_string_type
 
+# Just some extra "hacks" to add static aliases to subclasses of the object
+
 class ObjectMetaAliasable(type):
-    def __init__(cls, name, bases, attrs):
-        if "_aliases" in attrs:
-            cls._aliases = [name.lower().replace('_dsp', '~')] + cls._aliases
+    def __new__(cls, name, bases, dct):
+        if "_aliases" in dct:
+            dct["_aliases"] = [name.lower().replace('_dsp', '~')] + dct["_aliases"]
         else:
-            cls._aliases = [name.lower().replace('_dsp', '~')]
+            dct["_aliases"] = [name.lower().replace('_dsp', '~')]
+
+        original_init = dct.get("__init__")
+
+        # Call on_property_change after init of lowest subclass
+        def new_init(self, *args, **kwargs):
+            if original_init:
+                original_init(self, *args, **kwargs)
+            if original_init.__qualname__.split('.')[0] == self.__class__.__name__:
+                self.on_property_change(*self.properties['args'], **self.properties)
+
+        dct["__init__"] = new_init
+
+        return super().__new__(cls, name, bases, dct)
 
 def object_alias(*aliases):
     assert all([isinstance(alias, str) for alias in aliases])
@@ -23,6 +37,8 @@ def object_alias(*aliases):
             cls._aliases = list(aliases)
         return cls
     return decorator
+
+# Some extra definitions
 
 class IOType(Enum):
     BANG = 0
@@ -42,7 +58,12 @@ class RuntimeException(Exception):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+# Main code here
+
 class RASPPPyObject(metaclass=ObjectMetaAliasable):
+    """
+    Base Object class for data manipulation
+    """
     id_iter = itertools.count(start = 1)
     _aliases = []
 
@@ -58,6 +79,8 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
             self.type: IOType = type
             self.wires: list[RASPPPyObject.ObjectIO.WireInfo] = []
             self.value = None
+        def __repr__(self) -> str:
+            return f"{self.type}: {self.value}, {self.wires}"
 
     def __init__(self, *args, **kwargs):
         self.id = next(RASPPPyObject.id_iter)
@@ -69,7 +92,7 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
         if 'position' not in self.properties: self.properties['position'] = (0,0)
         if 'args' not in self.properties: self.properties['args'] = list(args)
         if 'text' not in self.properties:
-            self.properties['text'] = f"{self.__class__.__name__.lower().replace('_dsp', '~')} {' '.join([str(a) for a in self.properties['args']])}"
+            self.properties['text'] = f"{self.__class__._aliases[0]} {' '.join([str(a) for a in self.properties['args']])}"
 
         # Additional tags
         self.dsp = False
@@ -105,6 +128,9 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
     def __repr__(self):
         return repr(self.serialize())
     
+    def on_property_change(self, *args, **kwargs):
+        pass
+
     def set_properties(self, *args, **kwargs):
         """ 
         Overwrites the properties with the input arguments. Does not require properties to exist
@@ -112,6 +138,7 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
         self.properties |= kwargs
         if len(args) > 0:
             self.properties['args'] = list(args)
+        self.on_property_change(*args, **kwargs)
 
     def change_properties(self, *args, **kwargs):
         """ 
@@ -123,6 +150,7 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
             self.properties[key] = kwargs[key]
         if len(args) > 0:
             self.properties['args'] = list(args)
+        self.on_property_change(*args, **kwargs)
 
     def set_position(self, x, y):
         """ 
@@ -139,7 +167,7 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
 
     def add_input(self, type: IOType=IOType.MESSAGE, default=None):
         self.inputs.append(RASPPPyObject.ObjectIO(type))
-        if default: self.inputs[-1].value = default
+        if default is not None: self.inputs[-1].value = default
         self._check_signal_port()
 
     def add_output(self, type: IOType=IOType.MESSAGE):

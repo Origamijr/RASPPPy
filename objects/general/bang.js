@@ -17,7 +17,7 @@ class Bang extends RASPPPyObject {
             || y < this.y 
             || y > this.y+this.display_height) return NO_COLLISION
 
-        // TODO
+        ctx.strokeRect(this.x, this.y, this.display_width, this.display_height)
 
         return {type: CollisionType.Object, object: this}
     }

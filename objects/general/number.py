@@ -17,17 +17,18 @@ class Number(RASPPPyObject):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.add_input(IOType.MESSAGE)
+        self.add_input(IOType.MESSAGE, default=0)
         self.add_output(IOType.MESSAGE)
+        self.properties = {'value': 0} | self.properties
         
-        if len(self.properties['args']) >= 1:
-            value = self.properties['args'][0]
+    def on_property_change(self, *args, **kwargs):
+        if len(args) >= 1:
+            value = args[0]
             try:
                 value = int(value)
             except ValueError:
                 value = float(value)
             self.properties['value'] = value
-        self.properties = {'value': 0} | self.properties
 
     def bang(self, port=0):
         if port == 0:

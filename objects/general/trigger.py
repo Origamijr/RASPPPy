@@ -19,6 +19,7 @@ class Trigger(RASPPPyObject):
         super().__init__(*args, **kwargs)
         self.add_input(IOType.MESSAGE)
 
+    def on_property_change(self, *args, **kwargs):
         self.output_types = []
         args = self.properties['args']
         if len(args) == 0: args = ['a', 'a']
@@ -27,7 +28,6 @@ class Trigger(RASPPPyObject):
             if len(keys) != 1: raise RuntimeException(f'invalid trigger type: {tag}')
             self.output_types.append(keys[0])
             self.add_output(IOType.BANG if keys[0] == 'BANG' else IOType.MESSAGE)
-        print(self.outputs)
 
     def bang(self, port=0):
         if port == 0:

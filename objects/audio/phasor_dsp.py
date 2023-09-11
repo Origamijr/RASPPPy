@@ -2,10 +2,8 @@ import numpy as np
 from numbers import Number
 
 from core.object import RASPPPyObject, IOType
-from core.runtime import Runtime
 from core.config import config
 CONFIG = config('audio')
-
 
 class Phasor_DSP(RASPPPyObject):
     """
@@ -15,7 +13,6 @@ class Phasor_DSP(RASPPPyObject):
         super().__init__(*args, **kwargs)
         self.add_input(IOType.ANYTHING)
         self.add_output(IOType.SIGNAL)
-        self.set_properties(**self.properties)
         
         self.last_value = 0
 
@@ -26,12 +23,10 @@ class Phasor_DSP(RASPPPyObject):
         elif not isinstance(self.inputs[0].value, np.ndarray):
             self.inputs[0].value = np.full(CONFIG['chunk_size'], 0)
 
-    def set_properties(self, *args, **kwargs):
-        super().set_properties(*args, **kwargs)
-        
-        if len(self.properties['args']) >= 1:
-            self.inputs[0].value = self.properties['args'][0]
-        self._convert_input_to_signal()
+    def on_property_change(self, *args, **kwargs):
+        if len(args) >= 1:
+            self.inputs[0].value = args[0]
+            self._convert_input_to_signal()
 
     def bang(self, port=0):
         if port == 0:

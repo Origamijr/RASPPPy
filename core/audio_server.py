@@ -53,7 +53,7 @@ class AudioServer:
         elapsed_time = time.perf_counter() - start
         if AudioServer.frame_duration.value > 0: 
             dsp_load = elapsed_time / AudioServer.frame_duration.value
-            if dsp_load > 0.5:
+            if dsp_load > 0.9:
                 print(f'WARNING: High DSP load {dsp_load}')
 
     @staticmethod

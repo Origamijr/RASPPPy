@@ -1,3 +1,5 @@
+# Singleton Runtime object to coordinate patches and DSP
+
 import numpy as np
 
 from core.patch import Patch
@@ -5,15 +7,13 @@ from core.object import Blank, Blank_DSP, IOType, AudioIOObject
 from core.audio_server import AudioServer
 from core.logger import log
 from core.config import config
-CONFIG = config('audio')
 
 class Runtime():
+    module = None
     patches: dict[int,Patch] = dict()
     arrays = dict()
     dsp_order = []
     dsp = False
-
-    #execution_queue = Queue()
 
     @staticmethod
     def new_patch():
@@ -81,10 +81,9 @@ class Runtime():
         # Run Computation
         for object in Runtime.dsp_order:
             object._process_signal()
-            #if len(object.outputs) > 0: print(object.__class__.__name__, object.outputs[0].value)
 
         # Collect Outputs
-        output = np.zeros((CONFIG['chunk_size'],1))
+        output = np.zeros((config('audio', 'chunk_size'),1))
         for object in Runtime.dsp_order:
             if isinstance(object, AudioIOObject) and object.audio_output:
                 if output.size < object.audio_io_buffer.size:
@@ -113,7 +112,7 @@ class Runtime():
 
 if __name__ == "__main__":
     import time
-    from core.utils import import_dir
+    from core.runtime_data import import_dir
     module = import_dir('objects')
     globals().update({name: module.__dict__[name] for name in module.__dict__ if not name.startswith('_')})
     
@@ -142,5 +141,5 @@ if __name__ == "__main__":
     p = Runtime.open_patch('examples/phasor_loopback.json')
     print(Runtime.compute_dsp_graph(), Runtime.dsp_order)
     Runtime.start_dsp()
-    time.sleep(20)
+    time.sleep(10)
     Runtime.stop_dsp()

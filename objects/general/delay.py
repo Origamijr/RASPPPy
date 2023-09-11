@@ -10,8 +10,9 @@ class Delay(AsyncObject):
         self.add_input(default=0)
         self.add_output()
 
-        if len(self.properties['args']) >= 1:
-            self.inputs[1].value = float(self.properties['args'][0])
+    def on_property_change(self, *args, **kwargs):
+        if len(args) >= 1:
+            self.inputs[1].value = float(args[0])
 
     def bang(self, port=0):
         if port == 0:

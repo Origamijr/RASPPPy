@@ -2,10 +2,7 @@ import json
 from collections import OrderedDict
 
 from core.object import RASPPPyObject, WireException
-from core.utils import import_dir
-from core.config import config
-from core.logger import log
-CONFIG = config('files')
+from core.runtime_data import MODULE
 
 class Patch(RASPPPyObject):
     def __init__(self, filename=None):
@@ -29,13 +26,11 @@ class Patch(RASPPPyObject):
 
         self.objects = {}
         id_map = dict()
-        module = import_dir(CONFIG['base_library'])
         for info in data['objects']:
-            class_ = getattr(module, info['class'])
+            class_ = getattr(MODULE, info['class'])
             obj = class_(**info['properties'])
             id_map[info['id']] = obj.id
             self.objects[obj.id] = obj
-            #self.objects[obj.id].set_properties(**info['properties'])
 
         for obj, info in zip(self.objects.values(), data['objects']):
             for port, io in enumerate(info['outputs']):
@@ -71,7 +66,7 @@ class Patch(RASPPPyObject):
 
 
 if __name__ == "__main__":
-    import gevent
+    import time
     module = import_dir('objects')
     globals().update({name: module.__dict__[name] for name in module.__dict__ if not name.startswith('_')})
     
@@ -100,5 +95,5 @@ if __name__ == "__main__":
     p.load('examples/add_example.json')
     print(p)
     list(p.objects.values())[0].bang()
-    gevent.sleep(1.5)
+    time.sleep(1.5)
     

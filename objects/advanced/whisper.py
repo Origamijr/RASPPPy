@@ -29,16 +29,21 @@ class Whisper(AsyncObject):
             self.model = whisper.load_model(file, download_root=path)
         else:
             self.model = whisper.load_model(os.path.join(path, file + '.pt'))
+
+        # send a "dummy message to warm it up"
+        self.model.transcribe(np.array([0] * (1*512), dtype=np.float32), fp16=(self.properties['cuda'] and torch.cuda.is_available()))
+
         self.ready = True
 
     def bang(self, port=0):
         if not self.ready: return
         if not isinstance(self.inputs[0].value, np.ndarray): return
+        print(self.inputs[0].value.shape)
         text = self.model.transcribe(self.inputs[0].value, fp16=(self.properties['cuda'] and torch.cuda.is_available()))['text'].strip()
         self.outputs[0].value = text
         self.send()
 
 if __name__ == "__main__":
-    import gevent
+    import time
     Whisper()
-    gevent.wait()
+    time.sleep(3)
