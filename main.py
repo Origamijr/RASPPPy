@@ -51,6 +51,10 @@ def toggle_dsp(value):
     else:
         Runtime.stop_dsp()
 
+@eel.expose
+def bang_object(patch_id, object_id, port):
+    Runtime.patches[patch_id].objects[object_id].bang(port)
+
 def close_callback(route, websockets):
     Runtime.stop_dsp()
     os._exit(0)

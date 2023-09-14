@@ -92,7 +92,7 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
         if 'position' not in self.properties: self.properties['position'] = (0,0)
         if 'args' not in self.properties: self.properties['args'] = list(args)
         if 'text' not in self.properties:
-            self.properties['text'] = f"{self.__class__._aliases[0]} {' '.join([str(a) for a in self.properties['args']])}"
+            self.properties['text'] = f"{self.__class__._aliases[0]} {' '.join([str(a) for a in self.properties['args']])}".strip()
 
         # Additional tags
         self.dsp = False

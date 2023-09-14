@@ -37,7 +37,7 @@
           0
         ],
         "args": [],
-        "text": "adc~ "
+        "text": "adc~"
       }
     },
     {
@@ -155,7 +155,7 @@
           50
         ],
         "args": [],
-        "text": "vad~ "
+        "text": "vad~"
       }
     },
     {
@@ -191,7 +191,7 @@
           100
         ],
         "args": [],
-        "text": "whisper "
+        "text": "whisper"
       }
     },
     {
@@ -276,7 +276,7 @@
           150
         ],
         "args": [],
-        "text": "dac~ "
+        "text": "dac~"
       }
     },
     {
@@ -304,7 +304,7 @@
           150
         ],
         "args": [],
-        "text": "print "
+        "text": "print"
       }
     }
   ],
@@ -314,6 +314,6 @@
       0
     ],
     "args": [],
-    "text": "patch "
+    "text": "patch"
   }
 }

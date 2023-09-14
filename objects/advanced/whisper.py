@@ -38,7 +38,6 @@ class Whisper(AsyncObject):
     def bang(self, port=0):
         if not self.ready: return
         if not isinstance(self.inputs[0].value, np.ndarray): return
-        print(self.inputs[0].value.shape)
         text = self.model.transcribe(self.inputs[0].value, fp16=(self.properties['cuda'] and torch.cuda.is_available()))['text'].strip()
         self.outputs[0].value = text
         self.send()

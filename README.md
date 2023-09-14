@@ -36,16 +36,19 @@ Admitedly a mess, will write up later. Not completely standalone yet, need to fi
 - audio input/output
 - some advanced objects for VAD and ASR
 - Basic GUI to play patches
+- Dynamically loading objects from a specified directory for easy extension
 
 ### Planned for near future
-- Dynamically loading objects from a specified directory for easy extension
-- Built in models for TTS, and VC
+- Built in models for TTS, and VC (need to figure out [SOLA](https://github.com/w-okada/voice-changer/blob/master/server/voice_changer/VoiceChanger.py) [algorithm](https://github.com/yxlllc/DDSP-SVC/blob/master/gui.py) consider looking at [this](https://github.com/SillyTavern/SillyTavern-Extras/tree/main/modules/voice_conversion) to see minimum needed files for rvc)
+- External for LLMs ([conversation agent patch?](https://arxiv.org/pdf/2304.03442.pdf))
+- External for Avatars (Talkinghead or even [Live2d](https://github.com/Live2D/CubismWebSamples))
 - Actual GUI editor
 - Replicating most of the Pd library of basic blocks
 - Refining installation/execution process
 - Building into a standalone application
 
 ### Planned for far future
-- Faster dsp backend (may or may not be possible)
+- Faster dsp backend (may or may not be possible, need to learn Cython)
+- [VST Support?](https://github.com/hq9000/cython-vst-loader)
 - Pytorch library of objects for possibly training within the interface
 - Wider Multimedia capabilities (e.g. Video using OpenCV, WebGL or Live2D would be cool too)

@@ -30,7 +30,7 @@
           0
         ],
         "args": [],
-        "text": "bang "
+        "text": "bang"
       }
     },
     {
@@ -248,7 +248,7 @@
           150
         ],
         "args": [],
-        "text": "add "
+        "text": "add"
       }
     },
     {
@@ -272,7 +272,7 @@
           200
         ],
         "args": [],
-        "text": "print "
+        "text": "print"
       }
     }
   ],
@@ -282,6 +282,6 @@
       0
     ],
     "args": [],
-    "text": "patch "
+    "text": "patch"
   }
 }

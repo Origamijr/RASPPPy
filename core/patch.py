@@ -67,8 +67,8 @@ class Patch(RASPPPyObject):
 
 if __name__ == "__main__":
     import time
-    module = import_dir('objects')
-    globals().update({name: module.__dict__[name] for name in module.__dict__ if not name.startswith('_')})
+    from runtime_data import MODULE
+    globals().update({name: MODULE.__dict__[name] for name in MODULE.__dict__ if not name.startswith('_')})
     
     p = Patch()
     
