@@ -54,14 +54,22 @@ class Patch(RASPPPyObject):
         with open(filename, 'w') as f:
             json.dump(self.serialize(), f, indent=2)
 
-    def wire(self, src_id, src_port, dest_id, dest_port):
-        self.objects[src_id].wire(src_port, self.objects[dest_id], dest_port)
+    def bang_object(self, id, port=0):
+        self.objects[id].bang(port)
+
+    def wire(self, src_id, src_port, dest_id, dest_port, connect=True):
+        if connect:
+            try:
+                self.objects[src_id].wire(src_port, self.objects[dest_id], dest_port)
+            except WireException:
+                return False
+        else:
+            self.objects[src_id].disconnect(src_port, self.objects[dest_id], dest_port)
+        return True
         
-    def disconnect(self, src_id, src_port, dest_id, dest_port):
-        self.objects[src_id].disconnect(src_port, self.objects[dest_id], dest_port)
-        
-    def change_properties(self, id, *args, **kwargs):
+    def change_properties(self, id, *args, bang_object_port=None, **kwargs):
         self.objects[id].change_properties(*args, **kwargs)
+        if bang_object_port is not None: self.objects[id].bang(bang_object_port)
         
 
 

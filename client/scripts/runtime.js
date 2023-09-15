@@ -1,4 +1,4 @@
-// where python interfacing is relegated
+// where python and electron interfacing is relegated. Basically the "View" layer
 
 const Runtime = (() => {
     // Retrieve one-time data from python, and load external scripts
@@ -31,8 +31,8 @@ const Runtime = (() => {
 
     // Patch management callbacks
 
-    let patches = {} // TODO wrap into a class to avoid global scope
-
+    let patches = {}
+    
     window.electronAPI.openPatch(async (event, value) => {
         //console.log('got FILE_OPEN', event, value)
         let info = await eel.open_patch(value[0])()
@@ -44,7 +44,6 @@ const Runtime = (() => {
     })
 
     window.electronAPI.savePatch(async (event, value) => {
-        //console.log('got FILE_SAVE', event, value)
         await eel.save_patch(patches[0][1])() // TODO save is hard coded
     })
 
@@ -60,15 +59,32 @@ const Runtime = (() => {
     document.getElementById("edit_toggle").addEventListener("change", () => {
         edit_mode = document.getElementById("edit_toggle").checked
     });
+    window.electronAPI.toggleEditMode(async (event, value) => {
+        document.getElementById("edit_toggle").checked = !document.getElementById("edit_toggle").checked
+        edit_mode = document.getElementById("edit_toggle").checked
+    })
     function editMode() {
         return edit_mode
     }
 
 
     // Functions to call modifications to python
-    function bangObject(patch_id, object_id, port) {
-        eel.bang_object(patch_id, object_id, port)()
+
+    function updateObjectProperties(obj) {
+        eel.updateObjectProperties(obj.patch, obj.id, obj.properties)(patches[obj.patch].update_objects);
     }
+
+    function bangObject(obj, port) {
+        eel.bang_object(obj.patch, obj.id, port)()
+    }
+
+    function wire(patch_id, wires, connect, callback) {
+        eel.wire(patch_id, wires, connect)(callback)
+    }
+
+
+    // Function to receive updates from python
+    // TODO
     
     return {
         CONFIG,
@@ -76,5 +92,6 @@ const Runtime = (() => {
         DISPLAY_CLASSES,
         editMode,
         bangObject,
+        wire,
     }
 })();

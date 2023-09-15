@@ -16,10 +16,10 @@ class RASPPPyObject {
         this.width_set = false
         this.display_mode = false
         this.patch = patch_id
+        this.ctx = null
         if (obj) {
             this.load(obj)
         }
-        console.log(this.patch)
     }
 
     load(obj) {
@@ -30,11 +30,14 @@ class RASPPPyObject {
         this.text = this.properties.text
         this.x = this.properties.position[0]
         this.y = this.properties.position[1]
+        if (this.ctx) this._resize_box(this.ctx)
     }
 
     translate(x, y) {
         this.x += x
         this.y += y
+
+        // Port locations are absolute, so they must also be updated
         for (let input of this.inputs) {
             input.location.x += x
             input.location.y += y
@@ -46,23 +49,27 @@ class RASPPPyObject {
     }
 
     getCollision(x, y) {
+        // Check if outside
         if (x < this.x 
             || x > this.x+this.width 
             || y < this.y 
             || y > this.y+this.height) return NO_COLLISION
 
+        // Check input ports
         for (let i=0; i < this.inputs.length; i++) {
             if (x < this.x+i*this.input_spacing) continue
             if (x > this.x+i*this.input_spacing+this.port_width) continue
             if (y > this.y+5) continue
             return {type: CollisionType.Input, object: this, port: i}
         }
+        // Check output ports
         for (let i=0; i < this.outputs.length; i++) {
             if (x < this.x+i*this.output_spacing) continue
             if (x > this.x+i*this.output_spacing+this.port_width) continue
             if (y < this.y+this.height-5) continue
             return {type: CollisionType.Output, object: this, port: i}
         }
+        // Otherwise just colliding with object in general
         return {type: CollisionType.Object, object: this}
     }
 
@@ -109,7 +116,9 @@ class RASPPPyObject {
     }
 
     render(ctx, color) {
+        this.ctx = ctx
         if (!this.width_set) {
+            // Recompute width and port locations
             this._resize_box(ctx)
             this.width_set = true
         }
@@ -117,6 +126,7 @@ class RASPPPyObject {
         ctx.strokeStyle = color
         ctx.fillStyle = color
         if (this.text === '') {
+            // Default case if no text
             ctx.setLineDash([5, 3])
             ctx.strokeRect(this.x, this.y, this.width, this.height)
         } else {
@@ -181,6 +191,13 @@ class RASPPPyPatch {
             canv_obj = new RASPPPyObject(obj, this.id)
         }
         this.objects[obj.id] = canv_obj
+    }
+
+    update_objects(objs) {
+        console.log(objs)
+        for (let obj of objs) {
+            this.objects[obj.id].load(obj)
+        }
     }
 
     mouse_collision(x, y) {

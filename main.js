@@ -73,6 +73,13 @@ function createWindow() {
             mainWindow.webContents.send('DELETE_OBJECT', {})
           }
         },
+        {
+          label: 'Toggle Edit Mode',
+          accelerator: 'CmdOrCtrl+E',
+          click() {
+            mainWindow.webContents.send('TOGGLE_EDIT_MODE', {})
+          }
+        },
       ]
     },
   ])

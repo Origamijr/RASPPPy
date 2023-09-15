@@ -83,9 +83,13 @@ const CanvasEditor = (() => {
         if (!curr_patch) return
         if (curr_patch.dangling_wire) {
             if (curr_patch.dangling_wire.dest_id !== null) {
-                console.log('connected') // TODO
+                Runtime.wire(curr_patch.id, [curr_patch.dangling_wire], true, (modified) => {
+                    curr_patch.update_objects(modified)
+                    curr_patch.dangling_wire = null
+                });
+            } else {
+                curr_patch.dangling_wire = null
             }
-            curr_patch.dangling_wire = null
         }
     });
 
@@ -165,12 +169,12 @@ const CanvasEditor = (() => {
     function animate(timeStamp) {
         if (start === undefined) {
             start = timeStamp;
+            previousTimeStamp = start;
         }
-        const elapsed = timeStamp - start;
-
+        const dt = (timeStamp - previousTimeStamp)/1000;
         if (previousTimeStamp !== timeStamp) {
-            update(elapsed)
-            render(context)
+            update(dt);
+            render(context);
         }
 
         previousTimeStamp = timeStamp;

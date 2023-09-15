@@ -5,11 +5,12 @@ class Bang extends RASPPPyObject {
 
         this.height = 20
         this.width = 20
+        this.port_height = 2
         this.inputs[0].location = new Vec2(this.x+this.port_width/2, this.y+this.port_height/2)
         this.outputs[0].location = new Vec2(this.x+this.port_width/2, this.y+this.height-this.port_height/2)
 
         this.press_time = 0
-        this.press_duration = 'press_duration' in this.properties ? this.properties.press_duration : 1
+        this.press_duration = 'press_duration' in this.properties ? this.properties.press_duration : 0.2
     }
 
     getCollision(x, y) {
@@ -22,8 +23,13 @@ class Bang extends RASPPPyObject {
         return {type: CollisionType.Object, object: this}
     }
 
+    bang() {
+        this.press_time = this.press_duration
+    }
+
     onmousedown(event) {
-        Runtime.bangObject(this.patch, this.id, 0)
+        Runtime.bangObject(this, 0)
+        this.bang()
     }
 
     render(ctx, color) {
@@ -44,6 +50,6 @@ class Bang extends RASPPPyObject {
 
     update(dt) {
         if (!this.display_mode) return super.update(dt)
-        this.press_time = Math.max(0, this.press_time - this.press_duration)
+        this.press_time = Math.max(0, this.press_time - dt)
     }
 }

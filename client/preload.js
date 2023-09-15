@@ -5,4 +5,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     savePatch: (callback) => ipcRenderer.on('SAVE_PATCH', callback),
 
     deleteObject: (callback) => ipcRenderer.on('DELETE_OBJECT', callback),
+    toggleEditMode: (callback) => ipcRenderer.on('TOGGLE_EDIT_MODE', callback),
 })

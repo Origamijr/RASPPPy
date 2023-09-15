@@ -9,6 +9,7 @@ warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
 warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
 from core.runtime import Runtime
+from core.object import PropertyException
 from core.config import config as conf
 
 eel.init('client', allowed_extensions=['.js', '.html'])
@@ -52,8 +53,25 @@ def toggle_dsp(value):
         Runtime.stop_dsp()
 
 @eel.expose
+def updateObjectProperties(patch_id, object_id, properties):
+    try:
+        Runtime.patches[patch_id].objects[object_id].change_properties(**properties)
+    except PropertyException:
+        pass
+    return Runtime.patches[patch_id].objects[object_id].serialize()
+
+@eel.expose
 def bang_object(patch_id, object_id, port):
-    Runtime.patches[patch_id].objects[object_id].bang(port)
+    Runtime.patches[patch_id].bang_object(object_id, port)
+
+@eel.expose
+def wire(patch_id, wires, connect):
+    modified = set()
+    for wire in wires:
+        if Runtime.patches[patch_id].wire(wire['src_id'], wire['src_port'], wire['dest_id'], wire['dest_port'], connect=connect):
+            modified.add(wire['src_id'])
+            modified.add(wire['dest_id'])
+    return [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
 
 def close_callback(route, websockets):
     Runtime.stop_dsp()
