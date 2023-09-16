@@ -64,3 +64,8 @@ def load_modules(verbose=False):
         ALIASES[alias] = objs[0]
 
 load_modules(verbose=False)
+
+if __name__ == "__main__":
+    for name, obj in vars(MODULE).items():
+        if isinstance(obj, type):
+            print(f'{name}: {obj._aliases}')

@@ -56,3 +56,22 @@ Admitedly a mess, will write up later. Not completely standalone yet, need to fi
 - [VST Support?](https://github.com/hq9000/cython-vst-loader)
 - Pytorch library of objects for possibly training within the interface
 - Wider Multimedia capabilities (e.g. Video using OpenCV, WebGL or Live2D would be cool too)
+
+## Objects
+
+| Group | Implemented | Revision Needed | Planned Soon | Planned | Wishlist |
+|--|--|--|--|--|--|
+| General | bang, print, trigger | delay, number | send, receive, until, metro, line, loadbang | select, route, pack, unpack, spigot, moses, change, swap, value, timer, pipe | netsend, netreceive
+| Math | + | | -, *, /, pow, ==, !=, >, <, >=, <=, &, &&, \|, \|\|, %, <<, >>, mod, div, sin, cos, tan, atan, atan2, sqrt, log, exp, abs, random, max, min, clip, wrap | expr, | mtof, powtodb, rmstodb, ftom, dbtopow, dbtorms
+| Data | | | array, table, tabread, tabread4, tabwrite, soundfiler | 
+| I/O | | | | key, keyup, keyname, qlist, textfile | everything midi and osc, openpanel, savepanel
+| Audio | adc~, dac~ | | vline~, send~, receive~, delwrite~, delread~, | sig~, threshold~, snapshot~, bang~, samplerate~, throw~, catch~, readsf~, writesf~
+| Audio Modules | phasor~ | | osc~, tabwrite~, tabplay~, tabread~, tabread4~, tabsend~, tabreceive~, noise~ | vcf~, env~, hip~, lop~, bp~, biquad~, rpole~, rzero~, rzero_rev~, cpole~, czero~, czero_rev~
+| Audio Math | *~ | | +~, -~, /~, max~, min~, clip~, sqrt~, wrap~, pow~, log~, exp~, abs~ | expr~, fft~, ifft~, rfft~, rifft~
+| Abstraction | | | pd, inlet, outlet, inlet~, outlet~ | clone
+| SpeechToolkit* | whisper | vad~ | tts | f0~ | rcv~
+| LLM* | llama | | | prompt-template |
+| Puppeteering* | | | | | Live2D, VRM, TalkingHead
+| CVToolkit* | | | | | cam
+
+\*  External library not in current repository

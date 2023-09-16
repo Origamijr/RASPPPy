@@ -1,9 +1,10 @@
 import numpy as np
 from numbers import Number
 
-from core.object import RASPPPyObject, IOType, PropertyException
+from core.object import RASPPPyObject, IOType, object_alias
 from core.audio_server import BUFSIZE
 
+@object_alias('*~')
 class Multiply_DSP(RASPPPyObject):
     """
     """

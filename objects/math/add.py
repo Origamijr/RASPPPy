@@ -1,14 +1,15 @@
-from core.object import RASPPPyObject, IOType
+from core.object import RASPPPyObject, object_alias
 
+@object_alias('+')
 class Add(RASPPPyObject):
     """
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.add_input(IOType.MESSAGE, default=0)
-        self.add_input(IOType.MESSAGE, default=0)
-        self.add_output(IOType.MESSAGE)
+        self.add_input(default=0)
+        self.add_input(default=0)
+        self.add_output()
         self.properties = {'value': 0} | self.properties
 
     def on_property_change(self, *args, **kwargs):
