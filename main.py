@@ -54,11 +54,18 @@ def toggle_dsp(value):
 
 @eel.expose
 def updateObjectProperties(patch_id, object_id, properties):
+    modified = set()
+    obj = Runtime.patches[patch_id].objects[object_id]
+    [modified.add(wire.object.id) for io in obj.inputs for wire in io.wires]
+    [modified.add(wire.object.id) for io in obj.outputs for wire in io.wires]
     try:
-        Runtime.patches[patch_id].objects[object_id].change_properties(**properties)
+        args = properties['args'] if 'args' in properties else []
+        kwargs = {k: v for k, v in properties.items() if k != 'args'}
+        obj.change_properties(*args, **kwargs)
+        modified.add(obj.id)
     except PropertyException:
-        pass
-    return Runtime.patches[patch_id].objects[object_id].serialize()
+        return []
+    return [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
 
 @eel.expose
 def bang_object(patch_id, object_id, port):

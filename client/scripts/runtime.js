@@ -70,8 +70,8 @@ const Runtime = (() => {
 
     // Functions to call modifications to python
 
-    function updateObjectProperties(obj) {
-        eel.updateObjectProperties(obj.patch, obj.id, obj.properties)(patches[obj.patch].update_objects);
+    function updateObjectProperties(obj, callback) {
+        eel.updateObjectProperties(obj.patch, obj.id, obj.properties)(callback);
     }
 
     function bangObject(obj, port) {
@@ -91,6 +91,8 @@ const Runtime = (() => {
         ALIASES,
         DISPLAY_CLASSES,
         editMode,
+        
+        updateObjectProperties,
         bangObject,
         wire,
     }
