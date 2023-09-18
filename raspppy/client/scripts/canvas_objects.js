@@ -50,19 +50,19 @@ class RASPPPyObject {
 
         // Port locations are absolute, so they must also be updated
         for (let input of this.inputs) {
-            if (!(location in input)) continue
+            if (!('location' in input)) continue
             input.location.x += x
             input.location.y += y
         }
         for (let output of this.outputs) {
-            if (!(location in output)) continue
+            if (!('location' in output)) continue
             output.location.x += x
             output.location.y += y
         }
     }
 
     setPosition(x, y) {
-        this.translate(x - this.position, y - this.position)
+        this.translate(x - this.x, y - this.y)
     }
 
     getCollision(x, y) {

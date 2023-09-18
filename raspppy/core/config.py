@@ -1,7 +1,7 @@
 import toml
 import os
 
-_config_path = os.path.join(os.path.dirname(__file__), './config.toml')
+_config_path = os.path.join(os.path.dirname(__file__), '../config.toml')
 
 """ TODO redo in main
 import __main__ as main

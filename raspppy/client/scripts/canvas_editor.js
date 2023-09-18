@@ -202,9 +202,7 @@ const CanvasEditor = (() => {
             update(dt);
             render(context);
         }
-
-        console.log(mouse_position)
-
+        
         previousTimeStamp = timeStamp;
 
         window.requestAnimationFrame(animate);
