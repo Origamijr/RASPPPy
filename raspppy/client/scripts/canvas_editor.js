@@ -3,11 +3,24 @@
 const CanvasEditor = (() => {
     let canvas = document.getElementById("main_canvas")
     let context = canvas.getContext("2d")
-    context.translate(0.5, 0.5)
     let curr_patch = null
+    const EditorState = {
+        Idle: 0,
+        Dragging: 1,
+        Wiring: 2,
+        Putting: 3,
+        Typing: 4,
+    }
+    let curr_state = EditorState.Idle
 
-    function setPatch(patch) {
-        curr_patch = patch
+    let mouse_position = new Vec2(-1,-1)
+    function setMouseFromEvent(event=null) {
+        if (event != null) {
+            mouse_position.set(parseInt(event.offsetX), parseInt(event.offsetY))
+        } else {
+            mouse_position.set(-1, -1)
+        }
+        return mouse_position
     }
 
     function fitToContainer(canvas) {
@@ -22,10 +35,10 @@ const CanvasEditor = (() => {
 
     let curr_collision = null
     let curr_drag_offset = null
-    function get_collision(patch, x, y) {
+    function get_collision(patch, pos) {
         let collision = NO_COLLISION
         if (patch) {
-            collision = patch.mouse_collision(x, y)
+            collision = patch.mouseCollision(pos.x, pos.y)
         }
         return collision
     }
@@ -33,14 +46,13 @@ const CanvasEditor = (() => {
     canvas.addEventListener('mousedown', function (event) {
         event.preventDefault()
 
-        let mouseX = parseInt(event.offsetX)
-        let mouseY = parseInt(event.offsetY)
+        setMouseFromEvent(event)
 
         if (!curr_patch) return
         switch (curr_collision.type) {
             case CollisionType.Object:
                 if (Runtime.editMode()) {
-                    curr_drag_offset = new Vec2(curr_collision.object.x - mouseX, curr_collision.object.y - mouseY)
+                    curr_drag_offset = new Vec2(curr_collision.object.x - mouse_position.x, curr_collision.object.y - mouse_position.y)
                     curr_patch.select(curr_collision.object.id)
                 } else if (typeof curr_collision.object.onmousedown === 'function') {
                     curr_collision.object.onmousedown(event)
@@ -57,7 +69,7 @@ const CanvasEditor = (() => {
                         src_id: curr_collision.object.id,
                         src_port: curr_collision.port,
                         src: curr_collision.object.outputs[curr_collision.port].location,
-                        dest: new Vec2(mouseX, mouseY),
+                        dest: mouse_position.cclone(),
                         type: curr_collision.object.outputs[curr_collision.port].type,
                         dest_id: null,
                         dest_port: null
@@ -78,17 +90,19 @@ const CanvasEditor = (() => {
         if (!curr_patch) return
 
         if (curr_drag_offset) {
+            // Release object if dragging
             Runtime.updateObjectProperties(curr_collision.object, (modified) => {
-                curr_patch.update_objects(modified)
+                curr_patch.updateObjects(modified) // update position on response
             });
             curr_drag_offset = null
             canvas.style.cursor = 'grab'
         }
 
         if (curr_patch.dangling_wire) {
+            // Wire if was creating wire
             if (curr_patch.dangling_wire.dest_id !== null) {
                 Runtime.wire(curr_patch.id, [curr_patch.dangling_wire], true, (modified) => {
-                    curr_patch.update_objects(modified)
+                    curr_patch.updateObjects(modified)
                     curr_patch.dangling_wire = null
                 });
             } else {
@@ -100,19 +114,17 @@ const CanvasEditor = (() => {
     canvas.addEventListener('mousemove', function (event) {
         event.preventDefault()
 
-        let mouseX = parseInt(event.offsetX)
-        let mouseY = parseInt(event.offsetY)
+        setMouseFromEvent(event)
 
         if (curr_drag_offset) {
             // Case if dragging an object
-            curr_collision.object.translate(mouseX + curr_drag_offset.x - curr_collision.object.x,
-                mouseY + curr_drag_offset.y - curr_collision.object.y)
+            curr_collision.object.setPosition(mouse_position.x + curr_drag_offset.x, mouse_position.y + curr_drag_offset.y)
             canvas.style.cursor = 'grabbing'
 
         } else if (curr_patch && curr_patch.dangling_wire) {
             // Case if creating a wire
-            curr_patch.dangling_wire.dest.set(mouseX, mouseY)
-            curr_collision = get_collision(curr_patch, mouseX, mouseY)
+            curr_patch.dangling_wire.dest.copy(mouse_position)
+            curr_collision = get_collision(curr_patch, mouse_position)
             if (curr_collision.type == CollisionType.Input
                     && (curr_collision.object.inputs[curr_collision.port].type == 'ANYTHING'
                     || curr_patch.dangling_wire.type == 'BANG'
@@ -121,6 +133,7 @@ const CanvasEditor = (() => {
                 curr_patch.dangling_wire.dest_port = curr_collision.port
                 canvas.style.cursor = 'crosshair'
             } else {
+                console.log('hi')
                 curr_patch.dangling_wire.dest_id = null
                 curr_patch.dangling_wire.dest_port = null
                 canvas.style.cursor = 'not-allowed'
@@ -128,7 +141,7 @@ const CanvasEditor = (() => {
 
         } else {
             // Default case (check current mouse collision and update)
-            curr_collision = get_collision(curr_patch, mouseX, mouseY)
+            curr_collision = get_collision(curr_patch, mouse_position)
 
             if (Runtime.editMode()) {
                 switch (curr_collision.type) {
@@ -153,8 +166,12 @@ const CanvasEditor = (() => {
 
     canvas.addEventListener('mouseout', function (event) {
         event.preventDefault()
-        //console.log('mouseout');
-        //console.log(event);
+        setMouseFromEvent()
+    });
+
+    canvas.addEventListener('mouseover', function (event) {
+        event.preventDefault()
+        setMouseFromEvent(event)
     });
 
     canvas.addEventListener('dblclick', function (event) {
@@ -186,6 +203,8 @@ const CanvasEditor = (() => {
             render(context);
         }
 
+        console.log(mouse_position)
+
         previousTimeStamp = timeStamp;
 
         window.requestAnimationFrame(animate);
@@ -193,7 +212,32 @@ const CanvasEditor = (() => {
 
     requestAnimationFrame(animate);
 
+
+    // Interface functions
+
+    function setPatch(patch) {
+        curr_patch = patch
+    }
+
+    function getPatch() {
+        return curr_patch
+    }
+
+    function putObject(klass=null) {
+        if (curr_state != EditorState.Idle) return null
+        curr_state = EditorState.Putting
+        ids = []
+        if (curr_patch.selected_objects.length == 1) {
+            obj = curr_patch.addObject(null, klass)
+            obj.setPosition(curr_patch.objects[obj_id].x, curr_patch.objects[obj_id].y)
+        } else if (mouse_position.x >= 0 && mouse_position.y >= 0) {
+
+        }
+    }
+
     return {
         setPatch,
+        getPatch,
+        putObject,
     }
 })();

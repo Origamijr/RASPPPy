@@ -53,7 +53,7 @@ def toggle_dsp(value):
         Runtime.stop_dsp()
 
 @eel.expose
-def updateObjectProperties(patch_id, object_id, properties):
+def update_object_properties(patch_id, object_id, properties):
     modified = set()
     obj = Runtime.patches[patch_id].objects[object_id]
     [modified.add(wire.object.id) for io in obj.inputs for wire in io.wires]
@@ -66,6 +66,17 @@ def updateObjectProperties(patch_id, object_id, properties):
     except PropertyException:
         return []
     return [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
+
+@eel.expose
+def remove_objects(patch_id, objs):
+    removed = set()
+    modified = set()
+    for obj_id in objs:
+        modified.update(Runtime.patches[patch_id].remove_object(obj_id))
+        removed.add(obj_id)
+    modified = modified - removed
+    return list(removed), [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
+
 
 @eel.expose
 def bang_object(patch_id, object_id, port):

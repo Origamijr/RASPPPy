@@ -137,8 +137,8 @@ if __name__ == "__main__":
     vad.wire(0, whs, 0)
     whs.wire(0, pr, 0)
 
-    p.save('examples/phasor_loopback.json')
-    p = Runtime.open_patch('examples/phasor_loopback.json')
+    p.save('../examples/phasor_loopback.json')
+    p = Runtime.open_patch('../examples/phasor_loopback.json')
     print(Runtime.compute_dsp_graph(), Runtime.dsp_order)
     Runtime.start_dsp()
     time.sleep(10)

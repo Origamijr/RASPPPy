@@ -211,15 +211,32 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
         self.outputs[output].wires.append(RASPPPyObject.ObjectIO.WireInfo(other, other_input))
         other.inputs[other_input].wires.append(RASPPPyObject.ObjectIO.WireInfo(self, output))
     
-    def disconnect(self, out_port, other_id, in_port):
+    def disconnect(self, out_port, other: 'RASPPPyObject', in_port):
         """
         Disconnects output of this object from the input of another if a connection exists
         """
-        other = [wire for wire in self.outputs[out_port].wires if wire.object.id == other_id and wire.port == in_port]
-        if len(other) == 0: raise WireException(self, out_port, 'disconnecting nonexistant wire')
-        other = other[0]
-        other.inputs[self.outputs[out_port].port].wires = [wire for wire in other.inputs[in_port].wires if wire.object.id != self.id or wire.port != out_port]
-        self.outputs[out_port].wires = [wire for wire in self.outputs[out_port].wires if wire.object.id != other_id or wire.port != in_port]
+
+        other.inputs[in_port].wires = [wire for wire in other.inputs[in_port].wires if wire.object.id != self.id or wire.port != out_port]
+        self.outputs[out_port].wires = [wire for wire in self.outputs[out_port].wires if wire.object.id != other.id or wire.port != in_port]
+
+    
+    def disconnect_all(self):
+        """
+        Disconnects all wires connected to the object
+        """
+        modified = set()
+        for io in self.inputs:
+            for wire in io.wires:
+                wire.object.outputs[wire.port].wires = [wire for wire in wire.object.outputs[wire.port].wires if wire.object.id != self.id]
+                modified.add(wire.object.id)
+            io.wires = []
+        for io in self.outputs:
+            for wire in io.wires:
+                wire.object.inputs[wire.port].wires = [wire for wire in wire.object.inputs[wire.port].wires if wire.object.id != self.id]
+                modified.add(wire.object.id)
+            io.wires = []
+        return list(modified)
+
 
     def set_input(self, port, value):
         """

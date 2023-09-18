@@ -50,13 +50,19 @@ class RASPPPyObject {
 
         // Port locations are absolute, so they must also be updated
         for (let input of this.inputs) {
+            if (!(location in input)) continue
             input.location.x += x
             input.location.y += y
         }
         for (let output of this.outputs) {
+            if (!(location in output)) continue
             output.location.x += x
             output.location.y += y
         }
+    }
+
+    setPosition(x, y) {
+        this.translate(x - this.position, y - this.position)
     }
 
     getCollision(x, y) {
@@ -136,10 +142,11 @@ class RASPPPyObject {
         ctx.lineWidth = 1;
         ctx.strokeStyle = color
         ctx.fillStyle = color
-        if (this.text === '') {
+        if (this.text === '' || !(this.text.split(' ')[0] in Runtime.aliases())) {
             // Default case if no text
             ctx.setLineDash([5, 3])
             ctx.strokeRect(this.x, this.y, this.width, this.height)
+            ctx.setLineDash([]);
         } else {
             // Render text
             ctx.font = 'bold 12px "DejaVu Sans Mono"'
@@ -179,17 +186,13 @@ class RASPPPyObject {
     }
 }
 
-class RASPPPyWire {
-
-}
-
 class RASPPPyPatch {
     constructor(patch) {
         this.id = patch.id
         this.name = patch.name
         this.filename = null
         this.objects = {}
-        for (let obj of patch.objects) { this.add_object(obj) }
+        for (let obj of patch.objects) { this.addObject(obj, obj.class) }
         this.mouse_position = null
 
         this.dangling_wire = null
@@ -198,18 +201,18 @@ class RASPPPyPatch {
         this.selected_objects = []
     }
 
-    add_object(obj) {
+    addObject(obj=null, klass=null) {
         let canv_obj = null;
-        if ('class' in obj && obj.class in Runtime.DISPLAY_CLASSES) {
-            canv_obj = new Runtime.DISPLAY_CLASSES[obj.class](obj, this.id)
+        if (klass != null && klass in Runtime.displayClasses()) {
+            canv_obj = new (Runtime.displayClasses()[obj.class])(obj, this.id)
         } else {
             canv_obj = new RASPPPyObject(obj, this.id)
         }
         this.objects[obj.id] = canv_obj
+        return canv_obj
     }
 
-    update_objects(objs) {
-        console.log(objs)
+    updateObjects(objs) {
         for (let obj of objs) {
             this.objects[obj.id].load(obj)
         }
@@ -233,7 +236,23 @@ class RASPPPyPatch {
         }
     }
 
-    mouse_collision(x, y) {
+    deleteSelection() {
+        Runtime.wire(this.id, this.selected_wires, false, (modified_from_wires) => {
+            Runtime.removeObjects(this.id, this.selected_objects, (modified_from_remove) => {
+                let combinedList = modified_from_wires
+                    .filter(obj1 => !modified_from_remove[1].some(obj2 => obj2.id === obj1.id))
+                    .filter(obj => !modified_from_remove[0].includes(obj.id))
+                    .concat(modified_from_remove[1]);
+                this.updateObjects(combinedList);
+
+                for (let key of modified_from_remove[0]) delete this.objects[key]
+                this.selected_wires = []
+                this.selected_objects = []
+            })
+        })
+    }
+
+    mouseCollision(x, y) {
         // Highly non-optimized. If an issue arises should be rewriten with like a sptial hash or something
         for (let id of Object.keys(this.objects)) {
             let collision = this.objects[id].getCollision(x, y)
@@ -297,6 +316,7 @@ class RASPPPyPatch {
                 }
             }
 
+            // Render wire being created
             if (this.dangling_wire) {
                 if (this.dangling_wire.type == 'SIGNAL') {
                     ctx.lineWidth = 2;

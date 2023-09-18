@@ -28,6 +28,18 @@ const Runtime = (() => {
         for (let dir of CONFIG.files.external_libraries) { load_scripts(dir) }
     })();
 
+    function aliases() {
+        return ALIASES
+    }
+
+    function config() {
+        return CONFIG
+    }
+
+    function displayClasses() {
+        return DISPLAY_CLASSES
+    }
+
 
     // Patch management callbacks
 
@@ -67,11 +79,27 @@ const Runtime = (() => {
         return edit_mode
     }
 
+    window.electronAPI.deleteObject(async (event, value) => {
+        CanvasEditor.getPatch().deleteSelection()
+    })
+
+    window.electronAPI.putObject(async (event, value) => {
+        CanvasEditor.putObject()
+    })
+
 
     // Functions to call modifications to python
 
     function updateObjectProperties(obj, callback) {
-        eel.updateObjectProperties(obj.patch, obj.id, obj.properties)(callback);
+        eel.update_object_properties(obj.patch, obj.id, obj.properties)(callback);
+    }
+
+    function removeObjects(patch_id, objs, callback) {
+        eel.remove_objects(patch_id, objs)(callback)
+    }
+
+    function putObjects(patch_id, classes, properties, callback) {
+        eel.put_objects(patch_id, classes, properties)(callback)
     }
 
     function bangObject(obj, port) {
@@ -87,12 +115,14 @@ const Runtime = (() => {
     // TODO
     
     return {
-        CONFIG,
-        ALIASES,
-        DISPLAY_CLASSES,
+        config,
+        aliases,
+        displayClasses,
         editMode,
-        
+
         updateObjectProperties,
+        removeObjects,
+        putObjects,
         bangObject,
         wire,
     }

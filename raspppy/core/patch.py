@@ -15,6 +15,11 @@ class Patch(RASPPPyObject):
         self.objects[obj.id] = obj
         return obj
 
+    def remove_object(self, obj_id):
+        modified = self.objects[obj_id].disconnect_all()
+        del self.objects[obj_id]
+        return modified
+
     def get_object(self, id):
         return self.objects[id] if id in self.objects else None
 
@@ -99,8 +104,8 @@ if __name__ == "__main__":
 
     #list(p.objects.values())[0].bang()
     
-    p.save('examples/add_example.json')
-    p.load('examples/add_example.json')
+    p.save('../examples/add_example.json')
+    p.load('../examples/add_example.json')
     print(p)
     list(p.objects.values())[0].bang()
     time.sleep(1.5)

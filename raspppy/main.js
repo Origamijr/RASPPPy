@@ -81,6 +81,17 @@ function createWindow() {
           }
         },
       ]
+    },{
+      label: 'Put',
+      submenu: [
+        {
+          label: 'Object',
+          accelerator: 'CmdOrCtrl+1',
+          click() {
+            mainWindow.webContents.send('PUT_OBJECT', {})
+          }
+        },
+      ]
     },
   ])
   Menu.setApplicationMenu(menu)
