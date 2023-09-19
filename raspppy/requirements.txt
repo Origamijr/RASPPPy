@@ -1,5 +1,4 @@
-#torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-sounddevice
-toml
-git+https://github.com/huggingface/transformers
-openai-whisper
+toml==0.10.2
+sounddevice==0.4.6
+scipy==1.11.2
+numpy==1.24.4

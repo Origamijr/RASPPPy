@@ -112,7 +112,7 @@ const Runtime = (() => {
 
 
     // Function to receive updates from python
-    // TODO
+    // TODO ui update call from python to call arbitrary class instance method
     
     return {
         config,

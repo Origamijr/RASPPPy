@@ -4,7 +4,7 @@ const CanvasEditor = (() => {
     let canvas = document.getElementById("main_canvas")
     let context = canvas.getContext("2d")
     let curr_patch = null
-    const EditorState = {
+    const EditorState = { // TODO make rest of the interractions stateful
         Idle: 0,
         Dragging: 1,
         Wiring: 2,
@@ -202,7 +202,7 @@ const CanvasEditor = (() => {
             update(dt);
             render(context);
         }
-        
+
         previousTimeStamp = timeStamp;
 
         window.requestAnimationFrame(animate);
