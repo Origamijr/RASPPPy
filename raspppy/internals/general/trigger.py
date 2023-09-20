@@ -1,6 +1,6 @@
 import numpy as np
 
-from core.object import RASPPPyObject, IOType, RuntimeException, object_alias
+from raspppy.core.object import RASPPPyObject, IOType, RuntimeException, object_alias
 
 @object_alias('t')
 class Trigger(RASPPPyObject):

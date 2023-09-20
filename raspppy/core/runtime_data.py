@@ -6,17 +6,21 @@ import os
 import types
 import inspect
 
-from core.config import config
-from core.logger import log
+from raspppy.core.config import config
+from raspppy.core.logger import log
 
 MODULE = None
 ALIASES = {}
 
 def import_dir(directory, verbose=False, module=None):
-    from core.object import RASPPPyObject
+    from raspppy.core.object import RASPPPyObject
     # From ChatGPT
     module = module if module else types.ModuleType("my_module")
+    if not os.path.exists(directory):
+        log(f'Warning: library path {directory} not found')
+        return module
     for file in glob.glob(f"{directory}/**/*.py", recursive=True):
+
         # Extract the module name from the file path
         module_name = os.path.splitext(os.path.basename(file))[0]
 

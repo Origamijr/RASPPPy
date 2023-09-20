@@ -1,4 +1,4 @@
-from core.object import AsyncObject
+from raspppy.core.object import AsyncObject
 
 class Delay(AsyncObject):
     """

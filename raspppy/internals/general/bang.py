@@ -1,5 +1,5 @@
 
-from core.object import RASPPPyObject, IOType, object_alias
+from raspppy.core.object import RASPPPyObject, IOType, object_alias
 
 @object_alias('b')
 class Bang(RASPPPyObject):

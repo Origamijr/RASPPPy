@@ -1,8 +1,8 @@
 import numpy as np
 from numbers import Number
 
-from core.object import RASPPPyObject, IOType
-from core.config import config
+from raspppy.core.object import RASPPPyObject, IOType
+from raspppy.core.config import config
 CONFIG = config('audio')
 
 class Phasor_DSP(RASPPPyObject):

@@ -1,8 +1,8 @@
 import json
 from collections import OrderedDict
 
-from core.object import RASPPPyObject, WireException
-from core.runtime_data import MODULE
+from raspppy.core.object import RASPPPyObject, WireException
+from raspppy.core.runtime_data import MODULE
 
 class Patch(RASPPPyObject):
     def __init__(self, filename=None):

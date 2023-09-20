@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from core.patch import Patch
-from core.object import Blank, Blank_DSP, IOType, AudioIOObject
-from core.audio_server import AudioServer
-from core.logger import log
-from core.config import config
+from raspppy.core.patch import Patch
+from raspppy.core.object import Blank, Blank_DSP, IOType, AudioIOObject
+from raspppy.core.audio_server import AudioServer
+from raspppy.core.logger import log
+from raspppy.core.config import config
 
 class Runtime():
     module = None
@@ -112,7 +112,7 @@ class Runtime():
 
 if __name__ == "__main__":
     import time
-    from core.runtime_data import import_dir
+    from raspppy.core.runtime_data import import_dir
     module = import_dir('objects')
     globals().update({name: module.__dict__[name] for name in module.__dict__ if not name.startswith('_')})
     

@@ -1,6 +1,6 @@
 from numbers import Number
 
-from core.object import RASPPPyObject, IOType
+from raspppy.core.object import RASPPPyObject, IOType
 
 class Number(RASPPPyObject):
     """

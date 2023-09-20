@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.scripts]
-raspppy = "raspppy.main:start_client"
+raspppy = "raspppy.main:main"
 
 [project.urls]
 "Homepage" = "https://github.com/Origamijr/RASPPPy"

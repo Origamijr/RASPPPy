@@ -3,8 +3,8 @@ import threading
 import numpy as np
 import sounddevice as sd
 
-from core.utils import MovingAverage
-from core.config import config
+from raspppy.core.utils import MovingAverage
+from raspppy.core.config import config
 CONFIG = config('audio')
 SAMPLE_RATE = CONFIG['sample_rate']
 BUFSIZE = CONFIG['chunk_size']

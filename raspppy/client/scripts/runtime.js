@@ -9,6 +9,8 @@ const Runtime = (() => {
         CONFIG = await eel.config()()
         ALIASES = await eel.get_aliases()()
 
+        // TODO Why am I iterating here? Do it in python and batch load the scripts...
+
         // Once both CONFIG and ALIASES are available, proceed to load the scripts
         async function load_scripts(directory) {
             const classNames = [...new Set(Object.values(ALIASES))]

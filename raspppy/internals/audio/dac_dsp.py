@@ -1,15 +1,15 @@
 import numpy as np
 
-from core.object import AudioIOObject, IOType
+from raspppy.core.object import AudioIOObject, IOType
 
-class ADC_DSP(AudioIOObject):
+class DAC_DSP(AudioIOObject):
     """
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.channels = []
-        self.audio_input = True
+        self.audio_output = True
         self.properties = {'channels': [0,1]} | self.properties
 
     def on_property_change(self, *args, **kwargs):
@@ -17,15 +17,13 @@ class ADC_DSP(AudioIOObject):
             num_channels = len(kwargs['channels'])
             if num_channels > len(self.channels):
                 for _ in range(num_channels - len(self.channels)):
-                    self.add_output(IOType.SIGNAL)
+                    self.add_input(IOType.SIGNAL)
             else:
                 for _ in range(len(self.channels) - num_channels):
-                    self.remove_output()
+                    self.remove_input()
             self.channels = list(kwargs['channels'])
 
     def process_signal(self):
+        self.audio_io_buffer = np.zeros((self.audio_io_buffer.shape[0], max(self.channels)+1))
         for i, channel in enumerate(self.channels):
-            if channel >= self.audio_io_buffer.shape[1]:
-                self.outputs[i].value = np.zeros(self.audio_io_buffer.shape[0])
-            else:
-                self.outputs[i].value = self.audio_io_buffer[:,channel].copy()
+            self.audio_io_buffer[:,channel] = self.inputs[i].value

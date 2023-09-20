@@ -3,8 +3,8 @@ import numpy as np
 from enum import Enum, auto
 from dataclasses import dataclass
 
-from core.config import config
-from core.utils import infer_string_type
+from raspppy.core.config import config
+from raspppy.core.utils import infer_string_type
 
 # Just some extra "hacks" to add static aliases to subclasses of the object
 

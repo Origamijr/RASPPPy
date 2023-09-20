@@ -2,6 +2,9 @@ import eel
 import os
 import glob
 import sys
+import argparse
+import subprocess
+import shutil
 
 try:
     from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
@@ -12,18 +15,18 @@ try:
 except:
     pass
 
-from core.runtime import Runtime
-from core.object import PropertyException
-from core.config import config as conf
+from raspppy.core.runtime import Runtime
+from raspppy.core.object import PropertyException
+import raspppy.core.config as conf
 
 @eel.expose
 def get_aliases():
-    from core.runtime_data import ALIASES
+    from raspppy.core.runtime_data import ALIASES
     return ALIASES
 
 @eel.expose
 def config(*args):
-    return conf(*args)
+    return conf.config(*args)
 
 @eel.expose
 def get_js_scripts(directory):
@@ -93,25 +96,52 @@ def wire(patch_id, wires, connect):
             modified.add(wire['dest_id'])
     return [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
 
-def start_client():
-    print(sys.argv)
-    if not os.path.exists(os.path.join(os.path.dirname(__file__), 'node_modules')):
-        import subprocess
-        # Check npm is installed
-        try:
-            subprocess.run(['npm', '--version'], shell=True, check=True, stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            print('npm is not installed. Please install npm to use this application.')
-            exit(1)
 
-        # Install dependencies (should just be electron and its dependencies)
-        try:
-            subprocess.run(['npm', 'install'], shell=True, check=True)
-        except subprocess.CalledProcessError as e:
-            print(f'Error: {e}')
-            exit(1)
 
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', nargs='?', default=None)
+    parser.add_argument('--config', default=os.path.join(os.path.dirname(__file__), 'config.toml'), type=str)
+    parser.add_argument('--electron', default=None, type=str)
+    args = parser.parse_args(sys.argv[1:])
+
+    conf.reload(args.config)
+    print(sys.argv, args)
+
+    if args.electron:
+        # Use electron provided as an argument
+        electron_path = os.path.abspath(args.electron)
+    else:
+        electron_path = shutil.which('electron')
+        if electron_path:
+            # Use default electron if installed already
+            electron_path = os.path.abspath(electron_path)
+
+        else: 
+            # Use a locally downloaded electron
+            if not os.path.exists(os.path.join(os.path.dirname(__file__), 'node_modules')):
+                # Last resort, install electron
+                # Check npm is installed
+                try:
+                    subprocess.run(['npm', '--version'], shell=True, check=True, stdout=subprocess.PIPE)
+                except FileNotFoundError:
+                    print('npm is not installed. Please install npm to use this application.')
+                    exit(1)
+
+                # Install dependencies (should just be electron and its dependencies)
+                try:
+                    subprocess.run(['npm', 'install'], shell=True, check=True, cwd=os.path.dirname(__file__))
+                except subprocess.CalledProcessError as e:
+                    print(f'Error: {e}')
+                    exit(1)
+            electron_path = os.path.join(os.path.dirname(__file__), 'node_modules/electron/dist/electron')
+
+    # change the path so electron sees the correct package.json
+    os.chdir(os.path.dirname(__file__))
+
+    # Start the client
     eel.init('client', allowed_extensions=['.js', '.html'])
+    eel.browsers.set_path('electron', electron_path)
     
     def close_callback(route, websockets):
         Runtime.stop_dsp()
@@ -120,4 +150,4 @@ def start_client():
     eel.start('index.html', mode='electron', close_callback=close_callback, blocking=False)
 
 if __name__ == "__main__":
-    start_client()
+    main()

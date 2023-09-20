@@ -1,4 +1,4 @@
-from core.config import config
+from raspppy.core.config import config
 CONFIG = config('audio')
 
 match CONFIG['analysis_lib']:

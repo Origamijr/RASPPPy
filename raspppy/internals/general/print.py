@@ -1,5 +1,5 @@
-from core.object import RASPPPyObject, IOType, object_alias
-from core.logger import log
+from raspppy.core.object import RASPPPyObject, IOType, object_alias
+from raspppy.core.logger import log
 
 @object_alias('p')
 class Print(RASPPPyObject):

@@ -1,4 +1,4 @@
-from core.object import RASPPPyObject, object_alias
+from raspppy.core.object import RASPPPyObject, object_alias
 
 @object_alias('+')
 class Add(RASPPPyObject):
