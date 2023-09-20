@@ -1,12 +1,16 @@
 import eel
 import os
 import glob
+import sys
 
-from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
-import warnings
+try:
+    from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
+    import warnings
 
-warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
-warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+    warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
+    warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+except:
+    pass
 
 from core.runtime import Runtime
 from core.object import PropertyException
@@ -90,9 +94,7 @@ def wire(patch_id, wires, connect):
     return [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
 
 def start_client():
-    import sys
     print(sys.argv)
-
     if not os.path.exists(os.path.join(os.path.dirname(__file__), 'node_modules')):
         import subprocess
         # Check npm is installed
