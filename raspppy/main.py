@@ -100,13 +100,12 @@ def wire(patch_id, wires, connect):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', nargs='?', default=None)
-    parser.add_argument('--config', default=os.path.join(os.path.dirname(__file__), 'config.toml'), type=str)
-    parser.add_argument('--electron', default=None, type=str)
+    parser.add_argument('file', nargs='?', default=None, help='optional - file to open')
+    parser.add_argument('--config', default=os.path.join(os.path.dirname(__file__), 'config.toml'), type=str, help='path to alternative config file')
+    parser.add_argument('--electron', default=None, type=str, help='path to electron executable')
     args = parser.parse_args(sys.argv[1:])
 
     conf.reload(args.config)
-    print(sys.argv, args)
 
     if args.electron:
         # Use electron provided as an argument
@@ -150,4 +149,5 @@ def main():
     eel.start('index.html', mode='electron', close_callback=close_callback, blocking=False)
 
 if __name__ == "__main__":
+    sys.argv.append('examples/add_example.json')
     main()

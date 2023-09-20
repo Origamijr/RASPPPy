@@ -19,10 +19,12 @@ class Trigger(RASPPPyObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_input(IOType.MESSAGE)
+        self.properties = {'args': ['a', 'a']} | self.properties
+        
         self.output_types = []
+        
 
     def on_property_change(self, *args, **kwargs):
-        if len(args) == 0 and len(self.output_types) == 0: args = ['a', 'a']
         if len(args) > 0:
             # Parse the arguments into types from aliases
             new_types = []
