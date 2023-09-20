@@ -25,6 +25,9 @@ dependencies = [
     "numpy>=1.24.4",
 ]
 
+[project.scripts]
+raspppy = "raspppy.main:start_client"
+
 [project.urls]
 "Homepage" = "https://github.com/Origamijr/RASPPPy"
 "Bug Tracker" = "https://github.com/Origamijr/RASPPPy/issues"

@@ -12,8 +12,6 @@ from core.runtime import Runtime
 from core.object import PropertyException
 from core.config import config as conf
 
-eel.init('client', allowed_extensions=['.js', '.html'])
-
 @eel.expose
 def get_aliases():
     from core.runtime_data import ALIASES
@@ -91,8 +89,33 @@ def wire(patch_id, wires, connect):
             modified.add(wire['dest_id'])
     return [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
 
-def close_callback(route, websockets):
-    Runtime.stop_dsp()
-    os._exit(0)
+def start_client():
+    import sys
+    print(sys.argv)
 
-eel.start('index.html', mode='electron', close_callback=close_callback, blocking=False)
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), 'node_modules')):
+        import subprocess
+        # Check npm is installed
+        try:
+            subprocess.run(['npm', '--version'], shell=True, check=True, stdout=subprocess.PIPE)
+        except FileNotFoundError:
+            print('npm is not installed. Please install npm to use this application.')
+            exit(1)
+
+        # Install dependencies (should just be electron and its dependencies)
+        try:
+            subprocess.run(['npm', 'install'], shell=True, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f'Error: {e}')
+            exit(1)
+
+    eel.init('client', allowed_extensions=['.js', '.html'])
+    
+    def close_callback(route, websockets):
+        Runtime.stop_dsp()
+        os._exit(0)
+    
+    eel.start('index.html', mode='electron', close_callback=close_callback, blocking=False)
+
+if __name__ == "__main__":
+    start_client()
