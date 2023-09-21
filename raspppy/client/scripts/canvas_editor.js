@@ -6,10 +6,10 @@ const CanvasEditor = (() => {
     let curr_patch = null
     const EditorState = { // TODO make rest of the interractions stateful
         Idle: 0,
-        Dragging: 1,
-        Wiring: 2,
-        Putting: 3,
-        Typing: 4,
+        Dragging: 1, // Moving an object with the mouse held down
+        Wiring: 2, // Creating a wire from an output with the mouse held down
+        Putting: 3, // Moving an object without the mouse held down
+        ObjectTyping: 4, // Editing the text in an object
     }
     let curr_state = EditorState.Idle
 
@@ -35,12 +35,100 @@ const CanvasEditor = (() => {
 
     let curr_collision = null
     let curr_drag_offset = null
-    function get_collision(patch, pos) {
+    function getCollision(patch, pos) {
         let collision = NO_COLLISION
         if (patch) {
             collision = patch.mouseCollision(pos.x, pos.y)
         }
         return collision
+    }
+
+    // Text Input handling
+    text_callback = null
+    text_input_element = null
+    function addTextInput(x, y, callback, resizeCallback=null, initialValue='') {
+        input = text_input_element = document.createElement('div')
+        text_input_element.contentEditable = true
+    
+        const canvasRect = canvas.getBoundingClientRect();
+        text_input_element.style.position = 'fixed'
+        text_input_element.style.left = (canvasRect.left + x + 6) + 'px'
+        text_input_element.style.top = (canvasRect.top + y + 3) + 'px'
+        text_input_element.style.color = 'white'
+        text_input_element.style.fontSize = '12px' // This is hard-coded
+        text_input_element.style.outline = 'none'
+        text_input_element.style.overflow = 'auto'
+
+        text_input_element.innerText  = initialValue
+    
+        text_input_element.onkeydown = event => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' || event.key == 'Escape') {
+                event.preventDefault()
+                finishTextInput()
+            }
+            if (event.key === 'Tab') {
+                event.preventDefault()
+                document.execCommand('insertText', false, '  ') // Seems deprecated, but works
+            }
+        };
+
+        text_input_element.oninput = () => {
+            if (typeof resizeCallback === 'function') {
+                resizeCallback(text_input_element.offsetWidth, text_input_element.offsetHeight);
+            }
+        }
+    
+        document.body.appendChild(text_input_element)
+        document.body.addEventListener('mousedown', _textInputclickHandler)
+        text_callback = callback
+        text_input_element.focus()
+    }
+    function _textInputclickHandler(event) {
+        if (event.target !== text_input_element) {
+            finishTextInput();
+        }
+    }
+    function finishTextInput() {
+        const inputValue = text_input_element.innerText
+        text_input_element.blur()
+        document.body.removeChild(text_input_element)
+        document.body.removeEventListener('mousedown', _textInputclickHandler)
+        if (typeof text_callback === 'function') {
+            text_callback(inputValue);
+        }
+    }
+
+    function terminateActiveState() {
+        switch (curr_state) {
+            case EditorState.Dragging:
+            case EditorState.Putting:
+                // Release object if dragging
+                Runtime.updateObjectProperties(curr_patch.id, 
+                        curr_patch.selected_objects, 
+                        curr_patch.getProperties(curr_patch.selected_objects)
+                                  .map(props => ObjUtils.pick(props, ['position'])), 
+                        (modified) => {
+                    curr_patch.updateObjects(modified) // update position on response
+                });
+                if (curr_state == EditorState.Dragging) {
+                    canvas.style.cursor = 'grab'
+                    curr_drag_offset = null
+                }
+                break
+
+            case EditorState.Wiring:
+                // Wire if was creating wire
+                if (curr_patch.dangling_wire.dest_id !== null) {
+                    Runtime.wire(curr_patch.id, [curr_patch.dangling_wire], true, (modified) => {
+                        curr_patch.updateObjects(modified)
+                        curr_patch.dangling_wire = null
+                    });
+                } else {
+                    curr_patch.dangling_wire = null
+                }
+                break
+        }
+        curr_state = EditorState.Idle
     }
 
     canvas.addEventListener('mousedown', function (event) {
@@ -54,6 +142,7 @@ const CanvasEditor = (() => {
                 if (Runtime.editMode()) {
                     curr_drag_offset = new Vec2(curr_collision.object.x - mouse_position.x, curr_collision.object.y - mouse_position.y)
                     curr_patch.select(curr_collision.object.id)
+                    curr_state = EditorState.Dragging
                 } else if (typeof curr_collision.object.onmousedown === 'function') {
                     curr_collision.object.onmousedown(event)
                 }
@@ -69,11 +158,12 @@ const CanvasEditor = (() => {
                         src_id: curr_collision.object.id,
                         src_port: curr_collision.port,
                         src: curr_collision.object.outputs[curr_collision.port].location,
-                        dest: mouse_position.cclone(),
+                        dest: mouse_position.clone(),
                         type: curr_collision.object.outputs[curr_collision.port].type,
                         dest_id: null,
                         dest_port: null
                     }
+                    curr_state = EditorState.Wiring
                 }
                 break
             case CollisionType.None:
@@ -89,26 +179,7 @@ const CanvasEditor = (() => {
 
         if (!curr_patch) return
 
-        if (curr_drag_offset) {
-            // Release object if dragging
-            Runtime.updateObjectProperties(curr_collision.object, (modified) => {
-                curr_patch.updateObjects(modified) // update position on response
-            });
-            curr_drag_offset = null
-            canvas.style.cursor = 'grab'
-        }
-
-        if (curr_patch.dangling_wire) {
-            // Wire if was creating wire
-            if (curr_patch.dangling_wire.dest_id !== null) {
-                Runtime.wire(curr_patch.id, [curr_patch.dangling_wire], true, (modified) => {
-                    curr_patch.updateObjects(modified)
-                    curr_patch.dangling_wire = null
-                });
-            } else {
-                curr_patch.dangling_wire = null
-            }
-        }
+        terminateActiveState()
     });
 
     canvas.addEventListener('mousemove', function (event) {
@@ -124,7 +195,7 @@ const CanvasEditor = (() => {
         } else if (curr_patch && curr_patch.dangling_wire) {
             // Case if creating a wire
             curr_patch.dangling_wire.dest.copy(mouse_position)
-            curr_collision = get_collision(curr_patch, mouse_position)
+            curr_collision = getCollision(curr_patch, mouse_position)
             if (curr_collision.type == CollisionType.Input
                     && (curr_collision.object.inputs[curr_collision.port].type == 'ANYTHING'
                     || curr_patch.dangling_wire.type == 'BANG'
@@ -133,7 +204,6 @@ const CanvasEditor = (() => {
                 curr_patch.dangling_wire.dest_port = curr_collision.port
                 canvas.style.cursor = 'crosshair'
             } else {
-                console.log('hi')
                 curr_patch.dangling_wire.dest_id = null
                 curr_patch.dangling_wire.dest_port = null
                 canvas.style.cursor = 'not-allowed'
@@ -141,7 +211,7 @@ const CanvasEditor = (() => {
 
         } else {
             // Default case (check current mouse collision and update)
-            curr_collision = get_collision(curr_patch, mouse_position)
+            curr_collision = getCollision(curr_patch, mouse_position)
 
             if (Runtime.editMode()) {
                 switch (curr_collision.type) {
@@ -176,8 +246,14 @@ const CanvasEditor = (() => {
 
     canvas.addEventListener('dblclick', function (event) {
         event.preventDefault()
-        //console.log('dblclick');
+        console.log('dblclick');
         //console.log(event);
+    });
+
+    window.addEventListener('keydown', function(event) {
+        if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1) {
+            console.log(event.key)
+        }
     });
 
     function render(ctx) {
@@ -221,16 +297,29 @@ const CanvasEditor = (() => {
         return curr_patch
     }
 
-    function putObject(klass=null) {
-        if (curr_state != EditorState.Idle) return null
-        curr_state = EditorState.Putting
-        ids = []
+    function putObject() {
+        if (!curr_patch) return
+        terminateActiveState()
+        
+        obj = curr_patch.addObject(null, null, true)
+        curr_patch.select(obj)
         if (curr_patch.selected_objects.length == 1) {
-            obj = curr_patch.addObject(null, klass)
-            obj.setPosition(curr_patch.objects[obj_id].x, curr_patch.objects[obj_id].y)
-        } else if (mouse_position.x >= 0 && mouse_position.y >= 0) {
-
-        }
+            selected_obj = curr_patch.objects[curr_patch.selected_objects[0]]
+            position = new Vec2(selected_obj.x, selected_obj.y+selected_obj.height+10)
+            obj.setPosition(position.x, position.y)
+            curr_state = EditorState.ObjectTyping
+            addTextInput(position.x, position.y, text => {
+                obj.setText(text)
+            }, (w, h) => {
+                obj.width = Math.max(w + 12, obj.width)
+                obj.height = h + 6
+            })
+            return
+        } 
+        
+        position = (mouse_position.x >= 0 && mouse_position.y >= 0) ? mouse_position : new Vec2(canvas.width / 2, canvas.height / 2)
+        obj.setPosition(position.x, position.y)
+        curr_state = EditorState.Putting
     }
 
     return {

@@ -18,10 +18,10 @@ except:
 from raspppy.core.runtime import Runtime
 from raspppy.core.object import PropertyException
 import raspppy.core.config as conf
+from raspppy.core.runtime_data import MODULE, ALIASES
 
 @eel.expose
 def get_aliases():
-    from raspppy.core.runtime_data import ALIASES
     return ALIASES
 
 @eel.expose
@@ -58,25 +58,36 @@ def toggle_dsp(value):
         Runtime.stop_dsp()
 
 @eel.expose
-def update_object_properties(patch_id, object_id, properties):
+def update_object_properties(patch_id, obj_ids, properties):
     modified = set()
-    obj = Runtime.patches[patch_id].objects[object_id]
-    [modified.add(wire.object.id) for io in obj.inputs for wire in io.wires]
-    [modified.add(wire.object.id) for io in obj.outputs for wire in io.wires]
-    try:
-        args = properties['args'] if 'args' in properties else []
-        kwargs = {k: v for k, v in properties.items() if k != 'args'}
-        obj.change_properties(*args, **kwargs)
-        modified.add(obj.id)
-    except PropertyException:
-        return []
+    for obj_id, prop in zip(obj_ids, properties):
+        obj = Runtime.patches[patch_id].objects[obj_id]
+        [modified.add(wire.object.id) for io in obj.inputs for wire in io.wires]
+        [modified.add(wire.object.id) for io in obj.outputs for wire in io.wires]
+        try:
+            args = prop['args'] if 'args' in prop else []
+            kwargs = {k: v for k, v in prop.items() if k != 'args'}
+            obj.change_properties(*args, **kwargs)
+            modified.add(obj_id)
+        except PropertyException:
+            return []
     return [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
 
 @eel.expose
-def remove_objects(patch_id, objs):
+def put_objects(patch_id, properties):
+    """
+    Create objects in patch from its properties. Assumes 'text' is a property
+    """
+    for prop in properties:
+        assert 'text' in prop
+
+    return [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
+
+@eel.expose
+def remove_objects(patch_id, obj_ids):
     removed = set()
     modified = set()
-    for obj_id in objs:
+    for obj_id in obj_ids:
         modified.update(Runtime.patches[patch_id].remove_object(obj_id))
         removed.add(obj_id)
     modified = modified - removed

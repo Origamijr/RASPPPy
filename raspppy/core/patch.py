@@ -2,7 +2,8 @@ import json
 from collections import OrderedDict
 
 from raspppy.core.object import RASPPPyObject, WireException
-from raspppy.core.runtime_data import MODULE
+from raspppy.core.runtime_data import MODULE, ALIASES
+from raspppy.core.utils import infer_string_type
 
 class Patch(RASPPPyObject):
     def __init__(self, filename=None):
@@ -11,7 +12,15 @@ class Patch(RASPPPyObject):
         self.objects: OrderedDict[int, RASPPPyObject] = OrderedDict()
         if filename is not None: self.load(filename)
 
-    def add_object(self, obj: RASPPPyObject):
+    def add_object(self, obj: RASPPPyObject|dict):
+        if isinstance(obj, dict):
+            # instantiate from properties
+            properties = obj
+            klass = RASPPPyObject
+            if 'text' in properties and properties['text'].split()[0] in ALIASES:
+                klass = getattr(MODULE, ALIASES[properties['text'].split()[0]])
+            args = [infer_string_type(a) for a in properties['text'].split()[1:]]
+            obj = klass(*args, **properties)
         self.objects[obj.id] = obj
         return obj
 
@@ -86,7 +95,7 @@ if __name__ == "__main__":
     p = Patch()
     
     b  = p.add_object(Bang(position=(0,0)))
-    t  = p.add_object(Trigger('b', 'b', 'b', position=(0,50)))
+    t  = p.add_object({'text':'t b b b', 'position': (0,50)})
     d = p.add_object(Delay(1000, position=(100,50)))
     n1 = p.add_object(Number(1, position=(0,100)))
     n2 = p.add_object(Number(2, position=(100,100)))
@@ -104,8 +113,8 @@ if __name__ == "__main__":
 
     #list(p.objects.values())[0].bang()
     
-    p.save('../examples/add_example.json')
-    p.load('../examples/add_example.json')
+    p.save('examples/add_example.json')
+    p.load('examples/add_example.json')
     print(p)
     list(p.objects.values())[0].bang()
     time.sleep(1.5)

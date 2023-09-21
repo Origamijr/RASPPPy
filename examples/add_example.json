@@ -77,16 +77,16 @@
         }
       ],
       "properties": {
-        "position": [
-          0,
-          50
-        ],
         "args": [
           "b",
           "b",
           "b"
         ],
-        "text": "trigger b b b"
+        "text": "t b b b",
+        "position": [
+          0,
+          50
+        ]
       }
     },
     {

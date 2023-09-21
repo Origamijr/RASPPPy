@@ -3,7 +3,7 @@
 function distToSegmentSquared(a, b, p) {
     function sqr(x) { return x * x }
     function dist2(v, w) { return sqr(v.x - w.x) + sqr(v.y - w.y) }
-    
+
     var l2 = dist2(a, b); // length squared of segment
     if (l2 == 0) return dist2(a, p); // single point case
     // projection onto parameterized line a+t(b-a)
@@ -16,7 +16,7 @@ function distToSegmentSquared(a, b, p) {
 }
 
 class Vec2 {
-    constructor(x=0, y=0) {
+    constructor(x = 0, y = 0) {
         this.x = x
         this.y = y
     }
@@ -32,3 +32,24 @@ class Vec2 {
         this.y = y
     }
 }
+
+const ObjUtils = (() => {
+    const pick = (obj, keys) => Object.fromEntries(
+        keys.filter(key => key in obj)
+            .map(key => [key, obj[key]])
+    );
+    
+    const inclusivePick = (obj, keys) => Object.fromEntries(
+        keys.map(key => [key, obj[key]])
+    );
+    
+    const omit = (obj, keys) => Object.fromEntries(
+        Object.entries(obj).filter(([key]) => !keys.includes(key))
+    );
+    
+    return {
+        pick,
+        inclusivePick,
+        omit,
+    }
+})();

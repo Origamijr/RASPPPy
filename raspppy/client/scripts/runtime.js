@@ -92,16 +92,16 @@ const Runtime = (() => {
 
     // Functions to call modifications to python
 
-    function updateObjectProperties(obj, callback) {
-        eel.update_object_properties(obj.patch, obj.id, obj.properties)(callback);
+    function updateObjectProperties(patch_id, obj_ids, properties, callback) {
+        eel.update_object_properties(patch_id, obj_ids, properties)(callback);
     }
 
-    function removeObjects(patch_id, objs, callback) {
-        eel.remove_objects(patch_id, objs)(callback)
+    function removeObjects(patch_id, obj_ids, callback) {
+        eel.remove_objects(patch_id, obj_ids)(callback)
     }
 
-    function putObjects(patch_id, classes, properties, callback) {
-        eel.put_objects(patch_id, classes, properties)(callback)
+    function putObjects(patch_id, properties, callback) {
+        eel.put_objects(patch_id, properties)(callback)
     }
 
     function bangObject(obj, port) {

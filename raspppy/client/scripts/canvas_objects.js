@@ -12,7 +12,7 @@ class RASPPPyObject {
         this.text = ''
         this.inputs = []
         this.outputs = []
-        this.properties = {}
+        this.properties = { position: [0, 0], text: '' }
         this.width_set = false
         this.display_mode = false
         this.patch = patch_id
@@ -34,7 +34,7 @@ class RASPPPyObject {
         if (this.ctx) this._resize_box(this.ctx)
     }
 
-    displayMode(use=true) {
+    displayMode(use = true) {
         this.display_mode = false
         this.height = 20
         this.width = 32
@@ -63,6 +63,11 @@ class RASPPPyObject {
 
     setPosition(x, y) {
         this.translate(x - this.x, y - this.y)
+    }
+
+    setText(text) {
+        this.text = text
+        this.properties.text = text
     }
 
     getCollision(x, y) {
@@ -199,22 +204,43 @@ class RASPPPyPatch {
 
         this.selected_wires = []
         this.selected_objects = []
+
+        this.temp_counter = -1
     }
 
-    addObject(obj=null, klass=null) {
+    addObject(obj = null, klass = null, temp = false) {
         let canv_obj = null;
         if (klass != null && klass in Runtime.displayClasses()) {
             canv_obj = new (Runtime.displayClasses()[obj.class])(obj, this.id)
         } else {
             canv_obj = new RASPPPyObject(obj, this.id)
         }
-        this.objects[obj.id] = canv_obj
+        if (temp) {
+            canv_obj.id = this.temp_counter
+            this.temp_counter--
+        }
+        this.objects[canv_obj.id] = canv_obj
         return canv_obj
+    }
+
+    clearTempObjects() {
+        Object.keys(this.objects)
+            .filter(key => parseInt(key) < 0)
+            .forEach(key => delete dictionary[key]);
+        this.temp_counter = -1
     }
 
     updateObjects(objs) {
         for (let obj of objs) {
             this.objects[obj.id].load(obj)
+        }
+    }
+
+    getProperties(obj_ids) {
+        if (typeof obj_ids === 'number') {
+            return this.objects[obj_ids].properties;
+        } else if (Array.isArray(obj_ids)) {
+            return obj_ids.map(id => this.objects[id].properties);
         }
     }
 
@@ -304,7 +330,7 @@ class RASPPPyPatch {
                     let other = this.objects[wire.id]
                     let other_port = other.inputs[wire.port]
                     if (!('location' in other_port)) continue // other object hasn't been rendered
-                    if (WireUtils.wireInList({src_id: obj.id, src_port: port, dest_id: other.id, dest_port: wire.port}, this.selected_wires)){
+                    if (WireUtils.wireInList({ src_id: obj.id, src_port: port, dest_id: other.id, dest_port: wire.port }, this.selected_wires)) {
                         ctx.strokeStyle = 'aqua'
                     } else {
                         ctx.strokeStyle = 'white'
