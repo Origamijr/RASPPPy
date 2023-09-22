@@ -119,13 +119,9 @@ const CanvasEditor = (() => {
             case EditorState.Wiring:
                 // Wire if was creating wire
                 if (curr_patch.dangling_wire.dest_id !== null) {
-                    Runtime.wire(curr_patch.id, [curr_patch.dangling_wire], true, (modified) => {
-                        curr_patch.updateObjects(modified)
-                        curr_patch.dangling_wire = null
-                    });
-                } else {
-                    curr_patch.dangling_wire = null
+                    curr_patch.wire(curr_patch.dangling_wire)
                 }
+                curr_patch.dangling_wire = null
                 break
         }
         curr_state = EditorState.Idle
@@ -137,40 +133,46 @@ const CanvasEditor = (() => {
         setMouseFromEvent(event)
 
         if (!curr_patch) return
-        switch (curr_collision.type) {
-            case CollisionType.Object:
-                if (Runtime.editMode()) {
-                    curr_drag_offset = new Vec2(curr_collision.object.x - mouse_position.x, curr_collision.object.y - mouse_position.y)
-                    curr_patch.select(curr_collision.object.id)
-                    curr_state = EditorState.Dragging
-                } else if (typeof curr_collision.object.onmousedown === 'function') {
-                    curr_collision.object.onmousedown(event)
-                }
+        switch (curr_state) {
+            case EditorState.Putting:
+
                 break
-            case CollisionType.Wire:
-                if (Runtime.editMode()) {
-                    curr_patch.select(curr_collision)
+            default:
+                switch (curr_collision.type) {
+                    case CollisionType.Object:
+                        if (Runtime.editMode()) {
+                            curr_drag_offset = new Vec2(curr_collision.object.x - mouse_position.x, curr_collision.object.y - mouse_position.y)
+                            curr_patch.select(curr_collision.object.id)
+                            curr_state = EditorState.Dragging
+                        } else if (typeof curr_collision.object.onmousedown === 'function') {
+                            curr_collision.object.onmousedown(event)
+                        }
+                        break
+                    case CollisionType.Wire:
+                        if (Runtime.editMode()) {
+                            curr_patch.select(curr_collision)
+                        }
+                        break
+                    case CollisionType.Output:
+                        if (Runtime.editMode()) {
+                            curr_patch.dangling_wire = {
+                                src_id: curr_collision.object.id,
+                                src_port: curr_collision.port,
+                                src: curr_collision.object.outputs[curr_collision.port].location,
+                                dest: mouse_position.clone(),
+                                type: curr_collision.object.outputs[curr_collision.port].type,
+                                dest_id: null,
+                                dest_port: null
+                            }
+                            curr_state = EditorState.Wiring
+                        }
+                        break
+                    case CollisionType.None:
+                        if (Runtime.editMode()) {
+                            curr_patch.select(null)
+                        }
+                        break
                 }
-                break
-            case CollisionType.Output:
-                if (Runtime.editMode()) {
-                    curr_patch.dangling_wire = {
-                        src_id: curr_collision.object.id,
-                        src_port: curr_collision.port,
-                        src: curr_collision.object.outputs[curr_collision.port].location,
-                        dest: mouse_position.clone(),
-                        type: curr_collision.object.outputs[curr_collision.port].type,
-                        dest_id: null,
-                        dest_port: null
-                    }
-                    curr_state = EditorState.Wiring
-                }
-                break
-            case CollisionType.None:
-                if (Runtime.editMode()) {
-                    curr_patch.select(null)
-                }
-                break
         }
     });
 
@@ -187,50 +189,48 @@ const CanvasEditor = (() => {
 
         setMouseFromEvent(event)
 
-        if (curr_drag_offset) {
-            // Case if dragging an object
-            curr_collision.object.setPosition(mouse_position.x + curr_drag_offset.x, mouse_position.y + curr_drag_offset.y)
-            canvas.style.cursor = 'grabbing'
-
-        } else if (curr_patch && curr_patch.dangling_wire) {
-            // Case if creating a wire
-            curr_patch.dangling_wire.dest.copy(mouse_position)
-            curr_collision = getCollision(curr_patch, mouse_position)
-            if (curr_collision.type == CollisionType.Input
-                    && (curr_collision.object.inputs[curr_collision.port].type == 'ANYTHING'
-                    || curr_patch.dangling_wire.type == 'BANG'
-                    || curr_collision.object.inputs[curr_collision.port].type == curr_patch.dangling_wire.type)) {
-                curr_patch.dangling_wire.dest_id = curr_collision.object.id
-                curr_patch.dangling_wire.dest_port = curr_collision.port
-                canvas.style.cursor = 'crosshair'
-            } else {
-                curr_patch.dangling_wire.dest_id = null
-                curr_patch.dangling_wire.dest_port = null
-                canvas.style.cursor = 'not-allowed'
-            }
-
-        } else {
-            // Default case (check current mouse collision and update)
-            curr_collision = getCollision(curr_patch, mouse_position)
-
-            if (Runtime.editMode()) {
-                switch (curr_collision.type) {
-                    case CollisionType.Object:
-                        canvas.style.cursor = 'grab'
-                        break
-                    case CollisionType.Input:
-                    case CollisionType.Output:
-                        canvas.style.cursor = 'crosshair'
-                        break
-                    case CollisionType.Wire:
-                        canvas.style.cursor = 'cell'
-                        break
-                    default:
-                        canvas.style.cursor = 'pointer'
+        switch (curr_state) {
+            case EditorState.Dragging:
+                curr_collision.object.setPosition(mouse_position.x + curr_drag_offset.x, mouse_position.y + curr_drag_offset.y)
+                canvas.style.cursor = 'grabbing'
+                break
+            case EditorState.Wiring:
+                curr_patch.dangling_wire.dest.copy(mouse_position)
+                curr_collision = getCollision(curr_patch, mouse_position)
+                if (curr_collision.type == CollisionType.Input
+                        && (curr_collision.object.inputs[curr_collision.port].type == 'ANYTHING'
+                        || curr_patch.dangling_wire.type == 'BANG'
+                        || curr_collision.object.inputs[curr_collision.port].type == curr_patch.dangling_wire.type)) {
+                    curr_patch.dangling_wire.dest_id = curr_collision.object.id
+                    curr_patch.dangling_wire.dest_port = curr_collision.port
+                    canvas.style.cursor = 'crosshair'
+                } else {
+                    curr_patch.dangling_wire.dest_id = null
+                    curr_patch.dangling_wire.dest_port = null
+                    canvas.style.cursor = 'not-allowed'
                 }
-            } else {
-                canvas.style.cursor = 'default'
-            }
+                break
+            default:
+                // Default case (check current mouse collision and update)
+                curr_collision = getCollision(curr_patch, mouse_position)
+                if (Runtime.editMode()) {
+                    switch (curr_collision.type) {
+                        case CollisionType.Object:
+                            canvas.style.cursor = 'grab'
+                            break
+                        case CollisionType.Input:
+                        case CollisionType.Output:
+                            canvas.style.cursor = 'crosshair'
+                            break
+                        case CollisionType.Wire:
+                            canvas.style.cursor = 'cell'
+                            break
+                        default:
+                            canvas.style.cursor = 'pointer'
+                    }
+                } else {
+                    canvas.style.cursor = 'default'
+                }
         }
     });
 
@@ -251,8 +251,12 @@ const CanvasEditor = (() => {
     });
 
     window.addEventListener('keydown', function(event) {
-        if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1) {
-            console.log(event.key)
+        switch (curr_state) {
+            case EditorState.Putting:
+                if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1) {
+                    console.log(event.key)
+                }
+                break
         }
     });
 
@@ -302,14 +306,16 @@ const CanvasEditor = (() => {
         terminateActiveState()
         
         obj = curr_patch.addObject(null, null, true)
-        curr_patch.select(obj)
         if (curr_patch.selected_objects.length == 1) {
+            // If exactly one object is selected, spawn an object below it
             selected_obj = curr_patch.objects[curr_patch.selected_objects[0]]
             position = new Vec2(selected_obj.x, selected_obj.y+selected_obj.height+10)
             obj.setPosition(position.x, position.y)
+            curr_patch.wire(WireUtils.createWire(selected_obj.id, 0, obj.id, 0), true)
             curr_state = EditorState.ObjectTyping
             addTextInput(position.x, position.y, text => {
                 obj.setText(text)
+                curr_patch.putTempObjects()
             }, (w, h) => {
                 obj.width = Math.max(w + 12, obj.width)
                 obj.height = h + 6
@@ -320,6 +326,7 @@ const CanvasEditor = (() => {
         position = (mouse_position.x >= 0 && mouse_position.y >= 0) ? mouse_position : new Vec2(canvas.width / 2, canvas.height / 2)
         obj.setPosition(position.x, position.y)
         curr_state = EditorState.Putting
+        curr_patch.select(obj)
     }
 
     return {

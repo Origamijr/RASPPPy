@@ -10,9 +10,10 @@ class Patch(RASPPPyObject):
         super().__init__()
         self.name = 'Untitled'
         self.objects: OrderedDict[int, RASPPPyObject] = OrderedDict()
+        self.filename = filename
         if filename is not None: self.load(filename)
 
-    def add_object(self, obj: RASPPPyObject|dict):
+    def add_object(self, obj: RASPPPyObject|dict) -> RASPPPyObject:
         if isinstance(obj, dict):
             # instantiate from properties
             properties = obj

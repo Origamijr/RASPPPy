@@ -206,9 +206,10 @@ class RASPPPyPatch {
         this.selected_objects = []
 
         this.temp_counter = -1
+        this.temp_wires = []
     }
 
-    addObject(obj = null, klass = null, temp = false) {
+    addObject(obj=null, klass=null, temp=false) {
         let canv_obj = null;
         if (klass != null && klass in Runtime.displayClasses()) {
             canv_obj = new (Runtime.displayClasses()[obj.class])(obj, this.id)
@@ -223,10 +224,53 @@ class RASPPPyPatch {
         return canv_obj
     }
 
+    wire(wires, temp=false) {
+        if (temp) {
+            if (Array.isArray(wires)) {
+                this.temp_wires.push(...wires);
+            } else if (WireUtils.isWire(wires)) {
+                this.temp_wires.push(wires);
+            }
+            return
+        }
+        if (WireUtils.isWire(wires)) {
+            wires = [wires]
+        } else if (!Array.isArray(wires)) {
+            return
+        }
+        Runtime.wire(this.id, wires, true, (modified) => {
+            this.updateObjects(modified)
+        });
+    }
+
     clearTempObjects() {
         Object.keys(this.objects)
-            .filter(key => parseInt(key) < 0)
-            .forEach(key => delete dictionary[key]);
+            .filter(id => parseInt(id) < 0)
+            .forEach(id => delete dictionary[id]);
+        this.temp_counter = -1
+    }
+
+    putTempObjects() {
+        let ids = Object.keys(this.objects).filter(id => parseInt(id) < 0)
+        let properties = ids.map(id => this.objects[id].properties)
+        let temp_wires = JSON.parse(JSON.stringify(this.temp_wires))
+        if (ids.length > 0) {
+            Runtime.putObjects(this.id, properties, (added) => {
+                for (let i=0; i < added.length; i++) {
+                    // For each added object, replace the temp object, then replace the temp id with real id in temp_wires
+                    this.addObject(added[i], added[i].class)
+                    delete this.objects[ids[i]]
+                    for (let wire of temp_wires) {
+                        if (wire.src_id == ids[i]) wire.src_id = added[i].id
+                        if (wire.dest_id == ids[i]) wire.dest_id = added[i].id
+                    }
+                }
+                // Try wiring after creating the objects
+                this.wire(temp_wires)
+            })
+        } else {
+            this.wire(temp_wires)
+        }
         this.temp_counter = -1
     }
 
@@ -366,8 +410,16 @@ class RASPPPyPatch {
 }
 
 class WireUtils {
+    static createWire(src_id, src_port, dest_id, dest_port, obj={}) {
+        obj.src_id = src_id
+        obj.src_port = src_port
+        obj.dest_id = dest_id
+        obj.dest_port = dest_port
+        return obj
+    }
+
     static isWire(w) {
-        return ['src_id', 'src_port', 'dest_id', 'dest_port'].every(key => key in w)
+        return !Array.isArray(w) && ['src_id', 'src_port', 'dest_id', 'dest_port'].every(key => key in w)
     }
 
     static areWiresEqual(wire1, wire2) {

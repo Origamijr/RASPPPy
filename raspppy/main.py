@@ -78,10 +78,11 @@ def put_objects(patch_id, properties):
     """
     Create objects in patch from its properties. Assumes 'text' is a property
     """
+    added = []
     for prop in properties:
         assert 'text' in prop
-
-    return [Runtime.patches[patch_id].objects[id].serialize() for id in modified]
+        added.append(Runtime.patches[patch_id].add_object(prop).serialize())
+    return added
 
 @eel.expose
 def remove_objects(patch_id, obj_ids):
