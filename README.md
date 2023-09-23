@@ -69,7 +69,7 @@ Admitedly a mess, will write up later. Not completely standalone yet, need to fi
 - Faster dsp backend (may or may not be possible, need to learn Cython)
 - [VST Support?](https://github.com/hq9000/cython-vst-loader)
 - Pytorch library of objects for possibly training within the interface
-- Wider Multimedia capabilities (e.g. Video using OpenCV, WebGL or Live2D would be cool too)
+- Wider Multimedia capabilities (e.g. Video using OpenCV, WebGL or Live2D would be cool too. See [this](https://github.com/1996scarlet/OpenVtuber))
 
 ## Objects
 
