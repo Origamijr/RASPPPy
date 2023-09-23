@@ -92,26 +92,36 @@ const Runtime = (() => {
 
 
     // Functions to call modifications to python
-    // TODO These methods should acquire a lock as to not cause concurrency issues
+    // Locks acquired to avoid concurrency issues
 
     function updateObjectProperties(patch_id, obj_ids, properties, callback) {
-        eel.update_object_properties(patch_id, obj_ids, properties)(callback);
+        navigator.locks.request('eel', () => {
+            eel.update_object_properties(patch_id, obj_ids, properties)(callback);
+        })
     }
 
     function removeObjects(patch_id, obj_ids, callback) {
-        eel.remove_objects(patch_id, obj_ids)(callback)
+        navigator.locks.request('eel', () => {
+            eel.remove_objects(patch_id, obj_ids)(callback)
+        })
     }
 
     function putObjects(patch_id, properties, callback) {
-        eel.put_objects(patch_id, properties)(callback)
+        navigator.locks.request('eel', () => {
+            eel.put_objects(patch_id, properties)(callback)
+        })
     }
 
     function bangObject(obj, port) {
-        eel.bang_object(obj.patch, obj.id, port)()
+        navigator.locks.request('eel', () => {
+            eel.bang_object(obj.patch, obj.id, port)()
+        })
     }
 
     function wire(patch_id, wires, connect, callback) {
-        eel.wire(patch_id, wires, connect)(callback)
+        navigator.locks.request('eel', () => {
+            eel.wire(patch_id, wires, connect)(callback)
+        })
     }
 
 

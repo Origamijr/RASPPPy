@@ -6,13 +6,8 @@ A visual programming language for creating and running audio (and potentially ot
 
 With the rapid developments in audio processing, we now have access to many powerful components that can be used in larger applications. However, creating applications using these new models can take long times to prototype. In the realm of audio, [Pure Data](https://puredata.info/) allows for the rapid prototyping of various audio applications, but interfacing Pd with these newer audio processing tools is quite difficult.
 
-RASPPPy is being developed to try to emulate the rapid prototyping for audio applications of Pure Data, while staying in a python environment for easier integration of newer models. Since most newer machine learning tools are developed and implemented with python and pytorch, RASPPPy provides a near seemless way to integrate new technologies into a prototyping environment.
+RASPPPy is being developed to try to emulate the rapid prototyping environment of Pure Data, while staying in a python environment for easier integration of newer models. Since most newer machine learning tools are developed and implemented with python and pytorch, RASPPPy provides a near seemless way to integrate new technologies into a prototyping environment.
 
-RASPPPy is written with a python backend and a javascript frontend, making it entirely dynamic. This enables easily creating and integrating new types of objects without the need to compile.
-
-This is NOT meant to be a performant environment to build applications upon (although that's what I'll be personally doing). If you're just doing audio stuff, Pure Data is more performant. If you already have an application in mind with technologies determined, better to just write that as it's own application and avoid the overhead of RASPPPy. 
-
-Being written in only python, there are some severe limitations on DSP capabilities, but it's of workable quality for prototypes. The pure python codebase is not a deliberate design decision, but moreso a skill issue on my part as this would probably benefit to have C/C++ parts.
 
 ## Installation
 

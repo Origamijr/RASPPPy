@@ -19,7 +19,9 @@ class Number(RASPPPyObject):
         super().__init__(*args, **kwargs)
         self.add_input(IOType.MESSAGE, default=0)
         self.add_output(IOType.MESSAGE)
-        self.properties = {'value': 0} | self.properties
+        self.properties = {'initial_value': 0} | self.properties
+
+        self.value = self.properties['initial_value']
         
     def on_property_change(self, *args, **kwargs):
         if len(args) >= 1:
@@ -28,11 +30,19 @@ class Number(RASPPPyObject):
                 value = int(value)
             except ValueError:
                 value = float(value)
-            self.properties['value'] = value
+            self.properties['initial_value'] = value
+            self.value = self.properties['initial_value']
+        if 'initial_value' in kwargs:
+            value = kwargs['initial_value']
+            try:
+                value = int(value)
+            except ValueError:
+                value = float(value)
+            self.value = self.properties['initial_value']
 
     def bang(self, port=0):
         if port == 0:
             if isinstance(self.inputs[0], Number):
-                self.properties['value'] = self.inputs[0]
-        self.outputs[0].value = self.properties['value']
+                self.value = self.inputs[0]
+        self.outputs[0].value = self.value
         self.send()

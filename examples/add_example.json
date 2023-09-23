@@ -159,7 +159,7 @@
         }
       ],
       "properties": {
-        "value": 1,
+        "initial_value": 1,
         "position": [
           0,
           100
@@ -196,7 +196,7 @@
         }
       ],
       "properties": {
-        "value": 2,
+        "initial_value": 2,
         "position": [
           100,
           100
