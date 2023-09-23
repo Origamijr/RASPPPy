@@ -20,16 +20,6 @@ class Bang extends RASPPPyObject {
         }
     }
 
-    getCollision(x, y) {
-        if (!this.display_mode) return super.getCollision(x, y)
-        if (x < this.x 
-            || x > this.x+this.width 
-            || y < this.y 
-            || y > this.y+this.height) return NO_COLLISION
-
-        return {type: CollisionType.Object, object: this}
-    }
-
     bang() {
         this.press_time = this.press_duration
     }

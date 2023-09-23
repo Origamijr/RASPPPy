@@ -6,10 +6,10 @@ const CanvasEditor = (() => {
     let curr_patch = null
     const EditorState = { // TODO make rest of the interractions stateful
         Idle: 0,
-        Dragging: 1, // Moving an object with the mouse held down
-        Wiring: 2, // Creating a wire from an output with the mouse held down
-        Putting: 3, // Moving an object without the mouse held down
-        ObjectTyping: 4, // Editing the text in an object
+        Dragging: 1, // Moving an object with the mouse held down (curr_drag_offset is not null)
+        Wiring: 2, // Creating a wire from an output with the mouse held down (curr_patch.dangling_wire is not null)
+        Putting: 3, // Moving an object without the mouse held down (curr_patch.objects[-1] exists and curr_drag_offset is not null)
+        ObjectTyping: 4, // Editing the text in an object (curr_patch.objects[-1] exists)
     }
     let curr_state = EditorState.Idle
 
@@ -97,12 +97,25 @@ const CanvasEditor = (() => {
             text_callback(inputValue);
         }
     }
+    function editObjectText(obj, callback, initialValue='') {
+        addTextInput(obj.x, obj.y, text => {
+            obj.setText(text)
+            callback()
+        }, (w, h) => {
+            obj.width = Math.max(w + 12, obj.width)
+            obj.height = h + 6
+        }, initialValue)
+    }
 
     function terminateActiveState() {
         switch (curr_state) {
             case EditorState.Dragging:
             case EditorState.Putting:
-                // Release object if dragging
+                // Release object if putting
+                if (curr_state == EditorState.Putting) {
+                    curr_patch.putTempObjects()
+                }
+                // TODO rewrite to move Runtime call to Patch
                 Runtime.updateObjectProperties(curr_patch.id, 
                         curr_patch.selected_objects, 
                         curr_patch.getProperties(curr_patch.selected_objects)
@@ -112,8 +125,8 @@ const CanvasEditor = (() => {
                 });
                 if (curr_state == EditorState.Dragging) {
                     canvas.style.cursor = 'grab'
-                    curr_drag_offset = null
                 }
+                curr_drag_offset = null
                 break
 
             case EditorState.Wiring:
@@ -135,7 +148,6 @@ const CanvasEditor = (() => {
         if (!curr_patch) return
         switch (curr_state) {
             case EditorState.Putting:
-
                 break
             default:
                 switch (curr_collision.type) {
@@ -181,7 +193,15 @@ const CanvasEditor = (() => {
 
         if (!curr_patch) return
 
-        terminateActiveState()
+        switch (curr_state) {
+            case EditorState.Putting:
+                curr_state = EditorState.ObjectTyping
+                editObjectText(curr_patch.objects[-1], () => curr_patch.putTempObjects())
+                curr_drag_offset = null
+                break;
+            default:
+                terminateActiveState()
+        }
     });
 
     canvas.addEventListener('mousemove', function (event) {
@@ -190,13 +210,17 @@ const CanvasEditor = (() => {
         setMouseFromEvent(event)
 
         switch (curr_state) {
+            case EditorState.Putting:
             case EditorState.Dragging:
-                curr_collision.object.setPosition(mouse_position.x + curr_drag_offset.x, mouse_position.y + curr_drag_offset.y)
+                for (let id of curr_patch.selected_objects) {
+                    curr_patch.objects[id].setPosition(mouse_position.x + curr_drag_offset.x, mouse_position.y + curr_drag_offset.y)
+                }
                 canvas.style.cursor = 'grabbing'
                 break
             case EditorState.Wiring:
                 curr_patch.dangling_wire.dest.copy(mouse_position)
                 curr_collision = getCollision(curr_patch, mouse_position)
+                console.log(curr_collision)
                 if (curr_collision.type == CollisionType.Input
                         && (curr_collision.object.inputs[curr_collision.port].type == 'ANYTHING'
                         || curr_patch.dangling_wire.type == 'BANG'
@@ -254,7 +278,8 @@ const CanvasEditor = (() => {
         switch (curr_state) {
             case EditorState.Putting:
                 if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1) {
-                    console.log(event.key)
+                    curr_state = EditorState.ObjectTyping
+                    editObjectText(curr_patch.objects[-1], ()=>curr_patch.putTempObjects(), event.key)
                 }
                 break
         }
@@ -313,13 +338,7 @@ const CanvasEditor = (() => {
             obj.setPosition(position.x, position.y)
             curr_patch.wire(WireUtils.createWire(selected_obj.id, 0, obj.id, 0), true)
             curr_state = EditorState.ObjectTyping
-            addTextInput(position.x, position.y, text => {
-                obj.setText(text)
-                curr_patch.putTempObjects()
-            }, (w, h) => {
-                obj.width = Math.max(w + 12, obj.width)
-                obj.height = h + 6
-            })
+            editObjectText(obj, () => curr_patch.putTempObjects())
             return
         } 
         
@@ -327,6 +346,7 @@ const CanvasEditor = (() => {
         obj.setPosition(position.x, position.y)
         curr_state = EditorState.Putting
         curr_patch.select(obj)
+        curr_drag_offset = new Vec2(0,0)
     }
 
     return {

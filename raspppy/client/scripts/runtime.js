@@ -86,11 +86,13 @@ const Runtime = (() => {
     })
 
     window.electronAPI.putObject(async (event, value) => {
+        document.getElementById("edit_toggle").checked = edit_mode = true
         CanvasEditor.putObject()
     })
 
 
     // Functions to call modifications to python
+    // TODO These methods should acquire a lock as to not cause concurrency issues
 
     function updateObjectProperties(patch_id, obj_ids, properties, callback) {
         eel.update_object_properties(patch_id, obj_ids, properties)(callback);

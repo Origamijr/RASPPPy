@@ -81,14 +81,14 @@ class RASPPPyObject {
         for (let i = 0; i < this.inputs.length; i++) {
             if (x < this.x + i * this.input_spacing) continue
             if (x > this.x + i * this.input_spacing + this.port_width) continue
-            if (y > this.y + 5) continue
+            if (y > this.y + 6) continue
             return { type: CollisionType.Input, object: this, port: i }
         }
         // Check output ports
         for (let i = 0; i < this.outputs.length; i++) {
             if (x < this.x + i * this.output_spacing) continue
             if (x > this.x + i * this.output_spacing + this.port_width) continue
-            if (y < this.y + this.height - 5) continue
+            if (y < this.y + this.height - 6) continue
             return { type: CollisionType.Output, object: this, port: i }
         }
         // Otherwise just colliding with object in general
