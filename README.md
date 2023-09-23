@@ -1,5 +1,7 @@
 # RASPPPy (Real-time Audio Signal Processing Patcher for Python)
 
+[Documentation](docs/README.md)
+
 A visual programming language for creating and running audio (and potentially other multimedia) real-time applications created in Python.
 
 <p align="center"><img src='examples/phasor_loopback.PNG'></p>
