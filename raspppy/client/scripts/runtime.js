@@ -126,7 +126,10 @@ const Runtime = (() => {
 
 
     // Function to receive updates from python
-    // TODO ui update call from python to call arbitrary class instance method
+    eel.expose(callObjectMethod)
+    function callObjectMethod(patch_id, obj_id, f, args) {
+        return patches[patch_id].objects[obj_id][f](...args)
+    }
     
     return {
         config,

@@ -86,6 +86,7 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
         self.id = next(RASPPPyObject.id_iter)
         self.inputs: list[RASPPPyObject.ObjectIO] = []
         self.outputs: list[RASPPPyObject.ObjectIO]  = []
+        self.patch = None
         
         # Read arguments into the object properties
         self.properties = kwargs if kwargs != ... else dict()
@@ -164,6 +165,10 @@ class RASPPPyObject(metaclass=ObjectMetaAliasable):
         """
         args = [infer_string_type(a) for a in text.split(' ')[1:]]
         self.set_properties(*args, text=text)
+
+    def call_gui(self, function_name, args=[], callback=(lambda *args: None)):
+        assert self.patch
+        self.patch.call_gui(self, function_name, args, callback)
 
     def add_input(self, type: IOType=IOType.MESSAGE, default=None):
         self.inputs.append(RASPPPyObject.ObjectIO(type))

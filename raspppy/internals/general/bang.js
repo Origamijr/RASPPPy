@@ -25,7 +25,7 @@ class Bang extends RASPPPyObject {
     }
 
     onmousedown(event) {
-        Runtime.bangObject(this, 0)
+        Runtime.bangObject(this, 1)
         this.bang()
     }
 

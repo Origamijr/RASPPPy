@@ -3,7 +3,6 @@ from numbers import Number
 
 from raspppy.core.object import RASPPPyObject, IOType
 from raspppy.core.config import config
-CONFIG = config('audio')
 
 class Phasor_DSP(RASPPPyObject):
     """
@@ -13,15 +12,18 @@ class Phasor_DSP(RASPPPyObject):
         super().__init__(*args, **kwargs)
         self.add_input(IOType.ANYTHING)
         self.add_output(IOType.SIGNAL)
+
+        self.chunk_size = config('audio', 'chunk_size')
+        self.sr = config('audio', 'sample_rate')
         
         self.last_value = 0
 
     def _convert_input_to_signal(self):
         # Convert port 0 input to a constant signal if it's a number
         if isinstance(self.inputs[0].value, Number):
-            self.inputs[0].value = np.full(CONFIG['chunk_size'], self.inputs[0].value)
+            self.inputs[0].value = np.full(self.chunk_size, self.inputs[0].value)
         elif not isinstance(self.inputs[0].value, np.ndarray):
-            self.inputs[0].value = np.full(CONFIG['chunk_size'], 0)
+            self.inputs[0].value = np.full(self.chunk_size, 0)
 
     def on_property_change(self, *args, **kwargs):
         if len(args) >= 1:
@@ -34,7 +36,7 @@ class Phasor_DSP(RASPPPyObject):
 
     def process_signal(self):
         # Convert frequency to rate
-        deltas = self.inputs[0].value / CONFIG['sample_rate']
+        deltas = self.inputs[0].value / self.sr
 
         # The rate is just the first derivative, so a cumulative sum would give a ramp at constant rate
         # add the last value to set initial value

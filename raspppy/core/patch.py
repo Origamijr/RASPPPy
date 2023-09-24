@@ -1,4 +1,5 @@
 import json
+import eel
 from collections import OrderedDict
 
 from raspppy.core.object import RASPPPyObject, WireException
@@ -22,6 +23,7 @@ class Patch(RASPPPyObject):
                 klass = getattr(MODULE, ALIASES[properties['text'].split()[0]])
             args = [infer_string_type(a) for a in properties['text'].split()[1:]]
             obj = klass(*args, **properties)
+        obj.patch = self
         self.objects[obj.id] = obj
         return obj
 
@@ -68,6 +70,9 @@ class Patch(RASPPPyObject):
     def save(self, filename):
         with open(filename, 'w') as f:
             json.dump(self.serialize(), f, indent=2)
+
+    def call_gui(self, obj, function_name, args, callback):
+        eel.callObjectMethod(self.id, obj.id, function_name, args)(callback)
 
     def bang_object(self, id, port=0):
         self.objects[id].bang(port)

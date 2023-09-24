@@ -11,4 +11,6 @@ class Bang(RASPPPyObject):
         self.add_output(IOType.BANG)
 
     def bang(self, port=0):
+        if port == 0:
+            self.call_gui('bang')
         self.send()
