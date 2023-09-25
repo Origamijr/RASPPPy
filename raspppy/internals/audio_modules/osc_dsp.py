@@ -37,6 +37,7 @@ class Osc_DSP(RASPPPyObject):
 
     def process_signal(self):
         # If we want to allow variable frequency, we'll probably need to use complex multiplication
+        # P.S., I made a 5$ bet with my friend that this was faster than the normal wavetable approach (in python with numpy). I won.
 
         # convert frequency to a cumulative angle (imaginary) around the unit circle
         angle = np.cumsum(self.inputs[0].value / self.sr) * 2 * np.pi

@@ -15,20 +15,20 @@ class Multiply_DSP(RASPPPyObject):
         self.add_input(IOType.ANYTHING)
         self.add_output(IOType.SIGNAL)
         
-    def _convert_input_to_signal(self):
-        if isinstance(self.inputs[1].value, Number):
-            self.inputs[1].value = np.full(BUFSIZE, self.inputs[1].value)
-        elif not isinstance(self.inputs[1].value, np.ndarray):
-            self.inputs[1].value = np.full(BUFSIZE, 1)
+    def _convert_input_to_signal(self, port):
+        if isinstance(self.inputs[port].value, Number):
+            self.inputs[port].value = np.full(BUFSIZE, self.inputs[port].value)
+        elif not isinstance(self.inputs[port].value, np.ndarray):
+            self.inputs[port].value = np.full(BUFSIZE, 1)
 
     def on_property_change(self, *args, **kwargs):
         if len(args) >= 1:
             self.inputs[1].value = args[0]
-            self._convert_input_to_signal()
+            self._convert_input_to_signal(1)
 
     def bang(self, port=0):
-        if port == 1:
-            self._convert_input_to_signal()
+        if 0 <= port <= 1:
+            self._convert_input_to_signal(port)
 
     def process_signal(self):
-        self.outputs[0].value = np.multiply(self.inputs[0].value, self.inputs[1].value)
+        self.outputs[0].value = self.inputs[0].value * self.inputs[1].value

@@ -7,3 +7,5 @@ build/
 dist/
 *.exe
 *.spec
+externals/*
+!externals/redirect.md
