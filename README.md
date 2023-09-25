@@ -21,6 +21,8 @@ Adjust paths and settings in `config.toml` as necessary.
 
 Installation refinement is still in progress, and I'll get that working in the future. Will probably put onto pypi at some point to make installation easier.
 
+Additional externals can be found in [this repository](https://github.com/Origamijr/RASPPPy-externals)
+
 ## Running
 ```
 raspppy
