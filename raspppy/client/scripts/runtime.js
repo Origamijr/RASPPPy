@@ -17,27 +17,6 @@ const Runtime = (() => {
             document.body.appendChild(scriptElement)
             DISPLAY_CLASSES[classname] = eval(`${display_scripts[classname].display_class}`)
         });
-
-        // TODO Why am I iterating here? Do it in python and batch load the scripts...
-        /*
-        // Once both CONFIG and ALIASES are available, proceed to load the scripts
-        async function load_scripts(directory) {
-            const classNames = [...new Set(Object.values(ALIASES))]
-            const scripts = await eel.get_js_scripts(directory)()
-            for (let classname of classNames) {
-                const filename = classname.toLowerCase() // We assume the file name is just the class name
-                if (DISPLAY_CLASSES[classname] || !(filename in scripts)) continue // Skip if namespace already taken
-
-                const scriptElement = document.createElement('script')
-                scriptElement.textContent = scripts[filename]
-                document.body.appendChild(scriptElement)
-                DISPLAY_CLASSES[classname] = eval(`${classname}`)
-            }
-        }
-
-        load_scripts(CONFIG.files.base_library)
-        for (let dir of CONFIG.files.external_libraries) { load_scripts(dir) }
-        */
     })();
 
     function aliases() {
