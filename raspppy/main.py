@@ -5,6 +5,7 @@ import sys
 import argparse
 import subprocess
 import shutil
+import platform
 
 try:
     from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
@@ -18,7 +19,7 @@ except:
 from raspppy.core.runtime import Runtime
 from raspppy.core.object import PropertyException
 import raspppy.core.config as conf
-from raspppy.core.runtime_data import MODULE, ALIASES
+from raspppy.core.runtime_data import ALIASES, DISPLAY_CLASSES
 
 @eel.expose
 def get_aliases():
@@ -29,14 +30,8 @@ def config(*args):
     return conf.config(*args)
 
 @eel.expose
-def get_js_scripts(directory):
-    js_scripts = {}
-    for file in glob.glob(f"{directory}/**/*.js", recursive=True):
-        with open(file, 'r') as f:
-            script_content = f.read()
-            class_name = os.path.splitext(os.path.basename(file))[0].lower()
-            js_scripts[class_name] = script_content
-    return js_scripts
+def get_display_scripts():
+    return DISPLAY_CLASSES
 
 @eel.expose
 def open_patch(filename):
@@ -130,18 +125,19 @@ def main():
 
         else: 
             # Use a locally downloaded electron
+            npm_command = 'npm.cmd' if platform.system() == 'Windows' else 'npm'
             if not os.path.exists(os.path.join(os.path.dirname(__file__), 'node_modules')):
                 # Last resort, install electron
                 # Check npm is installed
                 try:
-                    subprocess.run(['npm', '--version'], shell=True, check=True, stdout=subprocess.PIPE)
+                    subprocess.run([npm_command, '--version'], check=True, stdout=subprocess.PIPE)
                 except FileNotFoundError:
                     print('npm is not installed. Please install npm to use this application.')
                     exit(1)
 
                 # Install dependencies (should just be electron and its dependencies)
                 try:
-                    subprocess.run(['npm', 'install'], shell=True, check=True, cwd=os.path.dirname(__file__))
+                    subprocess.run([npm_command, 'install'], check=True, cwd=os.path.dirname(__file__))
                 except subprocess.CalledProcessError as e:
                     print(f'Error: {e}')
                     exit(1)

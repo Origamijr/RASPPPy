@@ -15,6 +15,9 @@ class ObjectMetaAliasable(type):
         else:
             dct["_aliases"] = [name.lower().replace('_dsp', '~')]
 
+        if "_display_class" not in dct:
+            dct["_display_class"] = name # default js class to use same name
+
         original_init = dct.get("__init__")
 
         # Call on_property_change after init of lowest subclass
@@ -35,6 +38,12 @@ def object_alias(*aliases):
             cls._aliases += list(aliases)
         else:
             cls._aliases = list(aliases)
+        return cls
+    return decorator
+
+def display_class(classname: str):
+    def decorator(cls):
+        cls._display_class = classname
         return cls
     return decorator
 

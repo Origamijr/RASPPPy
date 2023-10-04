@@ -8,9 +8,18 @@ const Runtime = (() => {
     (async () => {
         CONFIG = await eel.config()()
         ALIASES = await eel.get_aliases()()
+        display_scripts = await eel.get_display_scripts()()
+
+        Object.keys(display_scripts).forEach(function(classname) {
+            if (DISPLAY_CLASSES[classname]) return
+            const scriptElement = document.createElement('script')
+            scriptElement.textContent = display_scripts[classname].script
+            document.body.appendChild(scriptElement)
+            DISPLAY_CLASSES[classname] = eval(`${display_scripts[classname].display_class}`)
+        });
 
         // TODO Why am I iterating here? Do it in python and batch load the scripts...
-
+        /*
         // Once both CONFIG and ALIASES are available, proceed to load the scripts
         async function load_scripts(directory) {
             const classNames = [...new Set(Object.values(ALIASES))]
@@ -28,6 +37,7 @@ const Runtime = (() => {
 
         load_scripts(CONFIG.files.base_library)
         for (let dir of CONFIG.files.external_libraries) { load_scripts(dir) }
+        */
     })();
 
     function aliases() {
