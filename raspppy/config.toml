@@ -1,6 +1,9 @@
 [audio]
 chunk_size = 512
 sample_rate = 48000
+host_api = 'MME'
+input_device = 'OBSMicL (Virtual Audio Cable)'
+output_device = 'Speakers (Focusrite USB Audio)'
 latency = 'low'
 analysis_lib = 'librosa'
 
