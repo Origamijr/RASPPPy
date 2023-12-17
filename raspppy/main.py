@@ -44,8 +44,10 @@ def main():
         if electron_path:
             # Use default electron if installed already
             electron_path = os.path.abspath(electron_path)
+            print('hi')
 
         else: 
+            print('bye')
             # Use a locally downloaded electron
             npm_command = 'npm.cmd' if platform.system() == 'Windows' else 'npm'
             if not os.path.exists(os.path.join(os.path.dirname(__file__), 'node_modules')):

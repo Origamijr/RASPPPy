@@ -28,10 +28,15 @@ def reload(path=None):
 
 
 
-def config(*keys):
+def config(*keys, **kwargs):
     obj = _CONFIG
-    for key in keys:
-        obj = obj[key]
-    return obj
+    try:
+        for key in keys:
+            obj = obj[key]
+        return obj
+    except KeyError:
+        if 'default' in kwargs:
+            return kwargs['default'] 
+        raise
 
 reload()

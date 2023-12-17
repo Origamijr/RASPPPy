@@ -3,9 +3,8 @@ import inspect
 
 def filter_kwargs(kwargs, exclude=None, adapt_f=None):
     if adapt_f is not None:
-        sig = inspect.signature(adapt_f)
-        filter_keys = [param.name for param in sig.parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
-        kwargs = {filter_key: kwargs[filter_key] for filter_key in filter_keys if filter_key in kwargs}
+        filter_keys = [param.name for param in inspect.signature(adapt_f).parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
+        kwargs = {key: kwargs[key] for key in filter_keys if key in kwargs}
     if exclude is not None:
         kwargs = {key: kwargs[key] for key in kwargs if key not in exclude}
     return kwargs

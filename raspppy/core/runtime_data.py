@@ -65,7 +65,7 @@ def import_dir(directory, verbose=False, module=None, display_classes=None):
 def load_modules(verbose=False):
     global MODULE, ALIASES, DISPLAY_CLASSES
     # Import modules 
-    MODULE = import_dir(config('files', 'base_library'), display_classes=DISPLAY_CLASSES, verbose=verbose)
+    MODULE = import_dir(os.path.join(os.path.dirname(__file__), '../internals'), display_classes=DISPLAY_CLASSES, verbose=verbose)
     for external_dir in config('files', 'external_libraries'):
         MODULE = import_dir(external_dir, module=MODULE, display_classes=DISPLAY_CLASSES, verbose=verbose)
 

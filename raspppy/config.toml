@@ -8,6 +8,5 @@ latency = 'low'
 analysis_lib = 'librosa'
 
 [files] # All relative paths here should be relative to the config file
-base_library = 'internals' # TODO remove. internals shouldn't change
 external_libraries = ['../externals/SpeechToolkit']
 model_dir = '../models'
